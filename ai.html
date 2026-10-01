@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>شطرنج - ضد الكمبيوتر</title>
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; user-select: none; }
+        html, body {
+            width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0;
+            background-color: #1e1e1e; color: white; font-family: Tahoma, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            position: fixed; padding-top: 15px; padding-bottom: 20px;
+        }
+        h2 { margin: 0; font-size: 18px; }
+        .board-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
+        #board { width: 320px; max-width: 82vw; max-height: 82vw; }
+        #status {
+            font-size: 14px; background: #333;
+            padding: 6px 12px; border-radius: 6px; text-align: center; margin-bottom: 8px;
+        }
+        .controls { display: flex; gap: 8px; }
+        button, .btn-back {
+            padding: 8px 14px; border-radius: 5px; border: none; font-size: 14px; font-family: Tahoma;
+            color: white; cursor: pointer; display: flex; align-items: center; gap: 6px; background: #4CAF50;
+            text-decoration: none;
+        }
+        .btn-undo { background: #f0ad4e; }
+        .btn-restart { background: #d9534f; }
+        .btn-back { background: #6c757d; }
+    </style>
+</head>
+<body>
+
+    <h2>شطرنج ضد الكمبيوتر 🤖</h2>
+    <div class="board-container"><div id="board"></div></div>
+    <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+        <div id="status">الدور على: الأبيض (أنت)</div>
+        <div class="controls">
+            <button class="btn-undo" onclick="undoMove()"><i class="fa-solid fa-rotate-left"></i> تراجع</button>
+            <button class="btn-restart" onclick="resetGame()"><i class="fa-solid fa-arrows-rotate"></i> إعادة</button>
+            <a href="index.html" class="btn-back"><i class="fa-solid fa-house"></i> رجوع</a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script>
+        var board = null, game = new Chess();
+        function updateStatus() {
+            var moveColor = (game.turn() === 'w') ? 'الأبيض (أنت)' : 'الأسود (الكمبيوتر)';
+            var status = game.in_checkmate() ? `كش ملك!` : game.in_draw() ? 'تعادل!' : `الدور على: ${moveColor} ${game.in_check() ? '(كش!)' : ''}`;
+            $('#status').text(status);
+        }
+        function makeComputerMove() {
+            if (game.game_over()) return;
+            var moves = game.moves();
+            if (moves.length === 0) return;
+            game.move(moves[Math.floor(Math.random() * moves.length)]);
+            board.position(game.fen());
+            updateStatus();
+        }
+        function onDrop(source, target) {
+            if (game.turn() === 'b') return 'snapback';
+            var move = game.move({ from: source, to: target, promotion: 'q' });
+            if (move === null) return 'snapback';
+            updateStatus();
+            setTimeout(makeComputerMove, 500);
+        }
+        board = Chessboard('board', {
+            draggable: true, position: 'start',
+            pieceTheme: 'https://chessboardjs.com/img/chesspieces/alpha/{piece}.png',
+            onDragStart: function(source, piece) {
+                if (game.game_over() || game.turn() === 'b' || piece.search(/^b/) !== -1) return false;
+            },
+            onDrop: onDrop, onSnapEnd: function() { board.position(game.fen()); }
+        });
+        function undoMove() { game.undo(); game.undo(); board.position(game.fen()); updateStatus(); }
+        function resetGame() { game.reset(); board.start(); updateStatus(); }
+        updateStatus();
+    </script>
+</body>
+</html>
