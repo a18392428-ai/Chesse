@@ -153,31 +153,32 @@
             }
         }
 
-        // دالة لتوليد كود قصير وعشوائي من 4 أرقام/حروف عشان يكون سهل المشاركة
         function generateShortCode() {
             return Math.random().toString(36).substring(2, 6).toUpperCase();
         }
 
         function createRoom() {
-            $('#status').text('جاري إنشاء الغرفة...');
+            $('#status').text('جاري الاتصال بالسيرفر...');
             
-            // استخدام كود قصير مخصص مع سيرفر PeerJS المجاني
             const shortId = generateShortCode();
             
-            // إنشاء الـ Peer بالإي دي القصير المخصص
-            peer = new Peer(shortId);
+            // استخدام السيرفر الرسمي والمستقر لـ PeerJS
+            peer = new Peer(shortId, {
+                host: '0.peerjs.com',
+                port: 443,
+                secure: true
+            });
 
             peer.on('open', (id) => {
                 $('#roomCodeInput').val(id);
-                $('#status').text('تم إنشاء الغرفة! شارك هذا الكود مع صديقك: ' + id);
+                $('#status').text('تم إنشاء الغرفة بنجاح! شارك الكود مع صديقك.');
             });
 
             peer.on('error', (err) => {
-                // لو الكود متكرر، جرب توليد كود تاني تلقائياً
                 if (err.type === 'unavailable-id') {
-                    createRoom();
+                    createRoom(); // إعادة المحاولة لو الكود متكرر
                 } else {
-                    $('#status').text('خطأ في الاتصال بالسيرفر، حاول مرة أخرى.');
+                    $('#status').text('خطأ في الاتصال: تأكد من الإنترنت أو جرب لاحقاً.');
                 }
             });
             
