@@ -28,14 +28,12 @@
         button { background: #4CAF50; color: white; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         input { background: #2a2a2a; color: white; border: 1px solid #444; text-align: center; width: 200px; }
         .menu-box { background: #252525; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; width: 260px; margin-bottom: 10px; }
-        
-    .selectable-code {
-        background: #2a2a2a; color: #4CAF50; border: 1px solid #555; 
-        text-align: center; width: 220px; padding: 6px; border-radius: 5px; 
-        font-family: monospace; font-size: 15px; font-weight: bold; margin-top: 5px;
-        user-select: text !important; /* السماح بتحديد النص ونسخه */
-    }
-
+        .selectable-code {
+            background: #2a2a2a; color: #4CAF50; border: 1px solid #555; 
+            text-align: center; width: 220px; padding: 6px; border-radius: 5px; 
+            font-family: monospace; font-size: 15px; font-weight: bold; margin-top: 5px;
+            user-select: text !important;
+        }
         .btn-undo { background: #f0ad4e; color: white; }
         .btn-back { background: #6c757d; color: white; text-decoration: none; display: flex; align-items: center; gap: 6px; }
         .hidden { display: none !important; }
@@ -93,15 +91,13 @@
                 myColor = 'w';
                 $('#setupScreen').addClass('hidden');
                 $('#gameScreen').removeClass('hidden');
-                
-                // عرض الكود داخل حقل نصي مخصص للنسخ المباشر
                 $('#roomInfo').html(`كود الغرفة (اضغط لتحديده ونسخه):<br><input type="text" class="selectable-code" value="${id}" readonly onclick="this.select();">`);
-                
                 initBoard('white');
                 $('#status').text('في انتظار انضمام صديق...');
             });
             peer.on('connection', function(c) {
-                conn = c; setupConnection();
+                conn = c; 
+                setupConnection();
                 $('#status').text('انضم الخصم! دور الأبيض.');
             });
         }
@@ -123,39 +119,61 @@
         }
 
         function setupConnection() {
+            conn.on('open', function() {
+                console.log("تم فتح قناة الاتصال بنجاح!");
+            });
             conn.on('data', function(data) {
                 if (data.type === 'move') {
-                    game.move(data.move); board.position(game.fen()); updateStatus();
+                    // تنفيذ النقلة الواردة وتحديث اللوحة بالـ FEN بشكل مباشر
+                    game.move(data.move);
+                    board.position(game.fen());
+                    updateStatus();
                 } else if (data.type === 'undo') {
-                    game.undo(); game.undo(); board.position(game.fen()); updateStatus();
+                    game.undo();
+                    game.undo();
+                    board.position(game.fen());
+                    updateStatus();
                 }
             });
         }
 
         function onDrop(source, target) {
+            // التحقق من أن الدور دور اللاعب الحالي وأن الاتصال مفعل
             if (game.turn() !== myColor || !conn) return 'snapback';
+            
             var move = game.move({ from: source, to: target, promotion: 'q' });
             if (move === null) return 'snapback';
+            
+            // إرسال تفاصيل النقلة للطرف الآخر
             conn.send({ type: 'move', move: move });
-            board.position(game.fen()); updateStatus();
+            board.position(game.fen());
+            updateStatus();
         }
 
         function initBoard(orientation) {
             game.reset();
             board = Chessboard('board', {
-                draggable: true, position: 'start', orientation: orientation,
+                draggable: true, 
+                position: 'start', 
+                orientation: orientation,
                 pieceTheme: 'https://chessboardjs.com/img/chesspieces/alpha/{piece}.png',
                 onDragStart: function(source, piece) {
                     if (game.game_over() || game.turn() !== myColor || (myColor === 'w' && piece.search(/^b/) !== -1) || (myColor === 'b' && piece.search(/^w/) !== -1)) return false;
                 },
-                onDrop: onDrop, onSnapEnd: function() { board.position(game.fen()); }
+                onDrop: onDrop, 
+                onSnapEnd: function() { 
+                    board.position(game.fen()); 
+                }
             });
             updateStatus();
         }
 
         function undoMove() {
             if (!conn) return;
-            game.undo(); game.undo(); board.position(game.fen()); updateStatus();
+            game.undo(); 
+            game.undo(); 
+            board.position(game.fen()); 
+            updateStatus();
             conn.send({ type: 'undo' });
         }
     </script>
