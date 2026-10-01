@@ -28,9 +28,14 @@
         button { background: #4CAF50; color: white; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         input { background: #2a2a2a; color: white; border: 1px solid #444; text-align: center; width: 200px; }
         .menu-box { background: #252525; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; width: 260px; margin-bottom: 10px; }
-        .code-wrapper { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; }
-        .code-display { background: #333; padding: 4px 8px; border-radius: 4px; font-family: monospace; color: #4CAF50; font-weight: bold; }
-        .btn-copy { background: #0275d8 !important; padding: 5px 10px !important; font-size: 12px !important; }
+        
+    .selectable-code {
+        background: #2a2a2a; color: #4CAF50; border: 1px solid #555; 
+        text-align: center; width: 220px; padding: 6px; border-radius: 5px; 
+        font-family: monospace; font-size: 15px; font-weight: bold; margin-top: 5px;
+        user-select: text !important; /* السماح بتحديد النص ونسخه */
+    }
+
         .btn-undo { background: #f0ad4e; color: white; }
         .btn-back { background: #6c757d; color: white; text-decoration: none; display: flex; align-items: center; gap: 6px; }
         .hidden { display: none !important; }
@@ -74,7 +79,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <script>
-        var board = null, game = new Chess(), peer = null, conn = null, myColor = '', currentRoomId = '';
+        var board = null, game = new Chess(), peer = null, conn = null, myColor = '';
         
         function updateStatus() {
             var moveColor = (game.turn() === 'w') ? 'الأبيض' : 'الأسود';
@@ -86,12 +91,11 @@
             peer = new Peer();
             peer.on('open', function(id) {
                 myColor = 'w';
-                currentRoomId = id;
                 $('#setupScreen').addClass('hidden');
                 $('#gameScreen').removeClass('hidden');
                 
-                // هنا الجزء الخاص بعرض الكود وزر النسخ بوضوح
-                $('#roomInfo').html(`كود الغرفة: <div class="code-wrapper"><span class="code-display">${id}</span><button class="btn-copy" onclick="copyRoomCode()"><i class="fa-solid fa-copy"></i> نسخ</button></div>`);
+                // عرض الكود داخل حقل نصي مخصص للنسخ المباشر
+                $('#roomInfo').html(`كود الغرفة (اضغط لتحديده ونسخه):<br><input type="text" class="selectable-code" value="${id}" readonly onclick="this.select();">`);
                 
                 initBoard('white');
                 $('#status').text('في انتظار انضمام صديق...');
@@ -99,16 +103,6 @@
             peer.on('connection', function(c) {
                 conn = c; setupConnection();
                 $('#status').text('انضم الخصم! دور الأبيض.');
-            });
-        }
-
-        function copyRoomCode() {
-            navigator.clipboard.writeText(currentRoomId).then(function() {
-                var btn = $('.btn-copy');
-                btn.html('<i class="fa-solid fa-check"></i> تم');
-                setTimeout(function() {
-                    btn.html('<i class="fa-solid fa-copy"></i> نسخ');
-                }, 2000);
             });
         }
 
