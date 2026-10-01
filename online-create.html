@@ -165,10 +165,28 @@
                 $('#roomCodeInput').val(id);
                 $('#status').text('تم إنشاء الغرفة! شارك الكود مع صديقك وانتظار دخوله...');
             });
+            
             peer.on('connection', (connection) => {
                 conn = connection;
-                setupConnection();
-                startGameSession();
+                
+                // التأكد من فتح الاتصال واستقبال البيانات بشكل سليم
+                conn.on('open', () => {
+                    startGameSession();
+                    $('#status').text('انضم اللاعب الآخر! ابدأ اللعب (دورك).');
+                });
+
+                conn.on('data', (data) => {
+                    if (data.type === 'move') {
+                        game.move(data.move);
+                        board.position(game.fen());
+                        playSound();
+                        updateStatusText();
+                    }
+                });
+
+                conn.on('close', () => {
+                    $('#status').text('انقطع الاتصال مع الخصم!');
+                });
             });
         }
 
@@ -186,20 +204,6 @@
             });
         }
 
-        function setupConnection() {
-            conn.on('data', (data) => {
-                if (data.type === 'move') {
-                    game.move(data.move);
-                    board.position(game.fen());
-                    playSound();
-                    updateStatusText();
-                }
-            });
-            conn.on('close', () => {
-                $('#status').text('انقطع الاتصال مع الخصم!');
-            });
-        }
-
         function startGameSession() {
             $('#menu-container').hide();
             $('#board-wrapper').css('display', 'flex');
@@ -214,13 +218,12 @@
             };
             board = Chessboard('board', config);
             updateStatusText();
-            $('#status').text('انضم اللاعب الآخر! ابدأ اللعب (دورك).');
         }
 
         function onDropPiece(source, target) {
             if (game.turn() !== 'w') return 'snapback';
 
-            var move = game.move({ from: source, to: target, promotion: 'q' });
+            var move = game.move({ from: source, target: target, promotion: 'q' });
             if (move === null) return 'snapback';
 
             playSound();
@@ -232,7 +235,7 @@
             }
         }
 
-        function updateStatusText() {
+3        function updateStatusText() {
             var turnText = (game.turn() === 'w') ? 'الأبيض (دورك)' : 'الأسود (انتظار الخصم...)';
             if (game.in_checkmate()) turnText = 'كش ملك! انتهت اللعبة.';
             else if (game.in_draw()) turnText = 'تعادل!';
