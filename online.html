@@ -28,7 +28,9 @@
         button { background: #4CAF50; color: white; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         input { background: #2a2a2a; color: white; border: 1px solid #444; text-align: center; width: 200px; }
         .menu-box { background: #252525; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; width: 260px; margin-bottom: 10px; }
-        .code-display { background: #333; padding: 4px 8px; border-radius: 4px; font-family: monospace; color: #4CAF50; font-weight: bold; word-break: break-all; }
+        .code-wrapper { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; }
+        .code-display { background: #333; padding: 4px 8px; border-radius: 4px; font-family: monospace; color: #4CAF50; font-weight: bold; }
+        .btn-copy { background: #0275d8 !important; padding: 5px 10px !important; font-size: 12px !important; }
         .btn-undo { background: #f0ad4e; color: white; }
         .btn-back { background: #6c757d; color: white; text-decoration: none; display: flex; align-items: center; gap: 6px; }
         .hidden { display: none !important; }
@@ -55,7 +57,7 @@
     <div id="gameScreen" class="hidden" style="display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 100%; height: 100%;">
         <h2>شطرنج أونلاين</h2>
         <div class="board-container">
-            <div id="roomInfo" style="font-size: 12px; color: #aaa; margin-bottom: 5px;"></div>
+            <div id="roomInfo" style="font-size: 13px; color: #ddd; margin-bottom: 5px; text-align: center;"></div>
             <div id="board"></div>
         </div>
         <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
@@ -72,19 +74,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <script>
-        var board = null, game = new Chess(), peer = null, conn = null, myColor = '';
+        var board = null, game = new Chess(), peer = null, conn = null, myColor = '', currentRoomId = '';
+        
         function updateStatus() {
             var moveColor = (game.turn() === 'w') ? 'الأبيض' : 'الأسود';
             var status = game.in_checkmate() ? `كش ملك!` : game.in_draw() ? 'تعادل!' : `الدور على: ${moveColor} ${game.turn() === myColor ? '(دورك)' : '(انتظار الخصم)'} ${game.in_check() ? '(كش!)' : ''}`;
             $('#status').text(status);
         }
+
         function createRoom() {
             peer = new Peer();
             peer.on('open', function(id) {
                 myColor = 'w';
+                currentRoomId = id;
                 $('#setupScreen').addClass('hidden');
                 $('#gameScreen').removeClass('hidden');
-                $('#roomInfo').html(`كود غرفتك: <span class="code-display">${id}</span>`);
+                
+                // هنا الجزء الخاص بعرض الكود وزر النسخ بوضوح
+                $('#roomInfo').html(`كود الغرفة: <div class="code-wrapper"><span class="code-display">${id}</span><button class="btn-copy" onclick="copyRoomCode()"><i class="fa-solid fa-copy"></i> نسخ</button></div>`);
+                
                 initBoard('white');
                 $('#status').text('في انتظار انضمام صديق...');
             });
@@ -93,6 +101,17 @@
                 $('#status').text('انضم الخصم! دور الأبيض.');
             });
         }
+
+        function copyRoomCode() {
+            navigator.clipboard.writeText(currentRoomId).then(function() {
+                var btn = $('.btn-copy');
+                btn.html('<i class="fa-solid fa-check"></i> تم');
+                setTimeout(function() {
+                    btn.html('<i class="fa-solid fa-copy"></i> نسخ');
+                }, 2000);
+            });
+        }
+
         function joinRoom() {
             var roomId = $('#roomCodeInput').val().trim();
             if (!roomId) { alert('اكتب الكود الأول!'); return; }
@@ -103,11 +122,12 @@
                 myColor = 'b';
                 $('#setupScreen').addClass('hidden');
                 $('#gameScreen').removeClass('hidden');
-                $('#roomInfo').text('متصل بصديقك');
+                $('#roomInfo').text('متصل بصديقك بنجاح');
                 initBoard('black');
                 $('#status').text('تم الاتصال! في انتظار نقلة الأبيض...');
             });
         }
+
         function setupConnection() {
             conn.on('data', function(data) {
                 if (data.type === 'move') {
@@ -117,6 +137,7 @@
                 }
             });
         }
+
         function onDrop(source, target) {
             if (game.turn() !== myColor || !conn) return 'snapback';
             var move = game.move({ from: source, to: target, promotion: 'q' });
@@ -124,6 +145,7 @@
             conn.send({ type: 'move', move: move });
             board.position(game.fen()); updateStatus();
         }
+
         function initBoard(orientation) {
             game.reset();
             board = Chessboard('board', {
@@ -136,6 +158,7 @@
             });
             updateStatus();
         }
+
         function undoMove() {
             if (!conn) return;
             game.undo(); game.undo(); board.position(game.fen()); updateStatus();
