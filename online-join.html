@@ -161,28 +161,30 @@
             peer = new Peer();
             peer.on('open', () => {
                 conn = peer.connect(code);
-                setupConnection();
-                startGameSession();
+                
+                // الاستماع لفتح اتصال الداتا بنجاح
+                conn.on('open', () => {
+                    $('#status').text('تم الاتصال بنجاح! انتظر دور الخصم (أنت تلعب بالأسود).');
+                    startGameSession();
+                });
+
+                // استقبال النقلات والبيانات من الخصم
+                conn.on('data', (data) => {
+                    if (data.type === 'move') {
+                        game.move(data.move);
+                        board.position(game.fen());
+                        playSound();
+                        updateStatusText();
+                    }
+                });
+
+                conn.on('close', () => {
+                    $('#status').text('انقطع الاتصال مع الخصم!');
+                });
             });
+
             peer.on('error', () => {
                 $('#status').text('فشل الاتصال! تأكد من صحة الكود.');
-            });
-        }
-
-        function setupConnection() {
-            conn.on('open', () => {
-                $('#status').text('تم الاتصال بنجاح! انتظر دور الخصم (أنت تلعب بالأسود).');
-            });
-            conn.on('data', (data) => {
-                if (data.type === 'move') {
-                    game.move(data.move);
-                    board.position(game.fen());
-                    playSound();
-                    updateStatusText();
-                }
-            });
-            conn.on('close', () => {
-                $('#status').text('انقطع الاتصال مع الخصم!');
             });
         }
 
@@ -193,7 +195,7 @@
             var config = {
                 draggable: true,
                 position: 'start',
-                orientation: 'black',
+                orientation: 'black', // المنضم يلعب بالأسود
                 pieceTheme: 'https://chessboardjs.com/img/chesspieces/alpha/{piece}.png',
                 onDrop: onDropPiece,
                 onSnapEnd: function() { board.position(game.fen()); }
@@ -203,6 +205,7 @@
         }
 
         function onDropPiece(source, target) {
+            // التحقق أن الدور هو دور الأسود ('b')
             if (game.turn() !== 'b') return 'snapback';
 
             var move = game.move({ from: source, to: target, promotion: 'q' });
@@ -212,6 +215,7 @@
             board.position(game.fen());
             updateStatusText();
 
+            // إرسال النقلة للخصم فور حدوثها
             if (conn && conn.open) {
                 conn.send({ type: 'move', move: { from: source, to: target, promotion: 'q' } });
             }
