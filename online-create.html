@@ -43,8 +43,8 @@
 
         input {
             flex: 1; padding: 10px 12px; border-radius: 10px; border: 1px solid #444;
-            background: #121212; color: white; font-size: 13px; text-align: center;
-            outline: none; transition: 0.3s;
+            background: #121212; color: white; font-size: 14px; text-align: center;
+            outline: none; transition: 0.3s; font-weight: bold; letter-spacing: 1px;
         }
 
         .btn-copy {
@@ -65,13 +65,8 @@
             border: 2px solid #2a2a2a;
         }
 
-        /* تثبيت ألوان مربعات الشطرنج لتتناسق تماماً مع التصميم الداكن الفخم */
-        .white-1e1d7 {
-            background-color: #262626 !important;
-        }
-        .black-3c85d {
-            background-color: #121212 !important;
-        }
+        .white-1e1d7 { background-color: #262626 !important; }
+        .black-3c85d { background-color: #121212 !important; }
 
         #status {
             font-size: 13px; background: linear-gradient(135deg, #1f1f1f, #252525); 
@@ -158,18 +153,37 @@
             }
         }
 
+        // دالة لتوليد كود قصير وعشوائي من 4 أرقام/حروف عشان يكون سهل المشاركة
+        function generateShortCode() {
+            return Math.random().toString(36).substring(2, 6).toUpperCase();
+        }
+
         function createRoom() {
-            $('#status').text('جاري الاتصال بالسيرفر وإنشاء الغرفة...');
-            peer = new Peer();
+            $('#status').text('جاري إنشاء الغرفة...');
+            
+            // استخدام كود قصير مخصص مع سيرفر PeerJS المجاني
+            const shortId = generateShortCode();
+            
+            // إنشاء الـ Peer بالإي دي القصير المخصص
+            peer = new Peer(shortId);
+
             peer.on('open', (id) => {
                 $('#roomCodeInput').val(id);
-                $('#status').text('تم إنشاء الغرفة! شارك الكود مع صديقك وانتظار دخوله...');
+                $('#status').text('تم إنشاء الغرفة! شارك هذا الكود مع صديقك: ' + id);
+            });
+
+            peer.on('error', (err) => {
+                // لو الكود متكرر، جرب توليد كود تاني تلقائياً
+                if (err.type === 'unavailable-id') {
+                    createRoom();
+                } else {
+                    $('#status').text('خطأ في الاتصال بالسيرفر، حاول مرة أخرى.');
+                }
             });
             
             peer.on('connection', (connection) => {
                 conn = connection;
                 
-                // التأكد من فتح الاتصال واستقبال البيانات بشكل سليم
                 conn.on('open', () => {
                     startGameSession();
                     $('#status').text('انضم اللاعب الآخر! ابدأ اللعب (دورك).');
@@ -197,7 +211,6 @@
                 return;
             }
             inputField.select();
-            inputField.setSelectionRange(0, 99999);
             document.execCommand('copy');
             navigator.clipboard.writeText(inputField.value).then(() => {
                 $('#status').text('تم نسخ الكود بنجاح! 📋');
@@ -223,7 +236,7 @@
         function onDropPiece(source, target) {
             if (game.turn() !== 'w') return 'snapback';
 
-            var move = game.move({ from: source, target: target, promotion: 'q' });
+            var move = game.move({ from: source, to: target, promotion: 'q' });
             if (move === null) return 'snapback';
 
             playSound();
@@ -235,7 +248,7 @@
             }
         }
 
-3        function updateStatusText() {
+        function updateStatusText() {
             var turnText = (game.turn() === 'w') ? 'الأبيض (دورك)' : 'الأسود (انتظار الخصم...)';
             if (game.in_checkmate()) turnText = 'كش ملك! انتهت اللعبة.';
             else if (game.in_draw()) turnText = 'تعادل!';
