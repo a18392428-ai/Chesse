@@ -95,7 +95,9 @@
         </div>
     </div>
 
-    <audio id="moveSound" src="https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move.mp3" preload="auto"></audio>
+    <!-- عناصر الصوت المحلية -->
+    <audio id="moveSound" src="move.mp3" preload="auto"></audio>
+    <audio id="checkSound" src="check.mp3" preload="auto"></audio>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
@@ -103,11 +105,37 @@
     <script>
         var board = null, game = new Chess();
         var moveAudio = document.getElementById('moveSound');
+        var checkAudio = document.getElementById('checkSound');
 
-        function playSound() {
-            if (moveAudio) {
+        // كسر قيود التشغيل التلقائي للمتصفح عند أول تفاعل
+        document.addEventListener('click', function initAudio() {
+            [moveAudio, checkAudio].forEach(audio => {
+                if (audio) {
+                    audio.play().then(() => { audio.pause(); audio.currentTime = 0; }).catch(e => {});
+                }
+            });
+            document.removeEventListener('click', initAudio);
+        }, { once: true });
+
+        // دالة ذكية لتشغيل الصوت والاهتزاز حسب الحالة
+        function playCustomSound(isCheck) {
+            const soundEnabled = localStorage.getItem('chess_sound') !== 'false';
+            if (!soundEnabled) return;
+
+            const vibrateEnabled = localStorage.getItem('chess_vibrate') !== 'false';
+
+            if (isCheck && checkAudio) {
+                checkAudio.currentTime = 0;
+                checkAudio.play().catch(e => {});
+                if (vibrateEnabled && navigator.vibrate) {
+                    navigator.vibrate([60, 40, 60]); // اهتزاز مميز عند الكش
+                }
+            } else if (moveAudio) {
                 moveAudio.currentTime = 0;
                 moveAudio.play().catch(e => {});
+                if (vibrateEnabled && navigator.vibrate) {
+                    navigator.vibrate(40); // اهتزاز خفيف للنقلة العادية
+                }
             }
         }
 
@@ -125,7 +153,10 @@
             if (possibleMoves.length === 0) return;
             var randomIdx = Math.floor(Math.random() * possibleMoves.length);
             game.move(possibleMoves[randomIdx]);
-            playSound();
+            
+            // تشغيل الصوت المناسب بناءً على هل النقلة فيها كش أم لا
+            playCustomSound(game.in_check());
+
             board.position(game.fen());
             updateStatus();
         }
@@ -135,7 +166,9 @@
             var move = game.move({ from: source, to: target, promotion: 'q' });
             if (move === null) return 'snapback';
             
-            playSound();
+            // تشغيل الصوت المناسب للاعب
+            playCustomSound(game.in_check());
+
             board.position(game.fen());
             updateStatus();
             
