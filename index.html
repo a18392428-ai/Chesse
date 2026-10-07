@@ -66,14 +66,6 @@
     </div>
 
     <script>
-        // اختبار التخزين المحلي للتأكد من عمله داخل الـ WebView
-        try {
-            localStorage.setItem('test_storage', 'ok');
-            localStorage.removeItem('test_storage');
-        } catch(e) {
-            console.warn('LocalStorage is restricted in this webview context.');
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
             const savedName = localStorage.getItem('chess_username');
             if (savedName) {
@@ -95,7 +87,6 @@
                 localStorage.setItem('chess_username', username);
                 window.location.href = 'menu.html';
             } catch (e) {
-                // بديل آمن لو الـ LocalStorage مقفول تماماً في التطبيق
                 window.name = username;
                 window.location.href = 'menu.html';
             }
