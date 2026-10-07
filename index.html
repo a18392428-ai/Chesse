@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>شطرنج - أونلاين</title>
+    <title>شطرنج أونلاين - تسجيل الاسم</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; user-select: none; }
@@ -17,38 +17,32 @@
 
         .card {
             background: linear-gradient(135deg, #1f1f1f, #252525);
-            border: 1px solid #383838; padding: 22px; border-radius: 16px;
-            width: 100%; max-width: 350px; text-align: center;
+            border: 1px solid #383838; padding: 25px; border-radius: 16px;
+            width: 100%; max-width: 330px; text-align: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-            animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: zoomIn 0.4s ease-out;
         }
 
-        h1 { margin-top: 0; font-size: 20px; color: #a855f7; text-shadow: 0 0 12px rgba(168, 85, 247, 0.4); }
-        p { font-size: 12px; color: #9ca3af; margin-bottom: 15px; }
+        h1 { margin-top: 0; font-size: 22px; color: #a855f7; text-shadow: 0 0 12px rgba(168, 85, 247, 0.4); margin-bottom: 8px; }
+        p { font-size: 12px; color: #9ca3af; margin-bottom: 20px; }
 
-        .input-group { margin-bottom: 12px; text-align: right; }
-        .input-group label { display: block; font-size: 11px; color: #d1d5db; margin-bottom: 4px; }
+        .input-group { margin-bottom: 16px; text-align: right; }
+        .input-group label { display: block; font-size: 12px; color: #d1d5db; margin-bottom: 6px; }
         
         input[type="text"] {
-            width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #444;
-            background: #121212; color: white; font-size: 13px; text-align: center;
+            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #444;
+            background: #121212; color: white; font-size: 14px; text-align: center;
             outline: none; transition: 0.3s;
         }
         input[type="text"]:focus { border-color: #a855f7; box-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
 
         .btn {
-            width: 100%; padding: 11px; border-radius: 10px; border: none; font-size: 13px;
+            width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 14px;
             font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            gap: 8px; margin-top: 8px; text-decoration: none; color: white; transition: 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            gap: 8px; background: linear-gradient(135deg, #a855f7, #9333ea); color: white;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); transition: 0.3s; text-decoration: none;
         }
         .btn:hover { transform: translateY(-2px); }
-        .btn-create { background: linear-gradient(135deg, #22c55e, #16a34a); }
-        .btn-join { background: linear-gradient(135deg, #a855f7, #9333ea); }
-        .btn-spectate { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-
-        .divider { margin: 12px 0; border-top: 1px solid #333; position: relative; }
-        .divider span { position: absolute; top: -9px; right: 50%; transform: translateX(50%); background: #222; padding: 0 8px; font-size: 10px; color: #777; }
 
         @keyframes zoomIn {
             from { opacity: 0; transform: scale(0.9); }
@@ -60,24 +54,14 @@
 
     <div class="card">
         <h1><i class="fa-solid fa-chess"></i> شطرنج أونلاين</h1>
-        <p>ادخل اسمك واختر نمط الاتصال بالغر فة</p>
+        <p>أدخل اسمك لنبدأ الرحلة</p>
 
         <div class="input-group">
-            <label><i class="fa-solid fa-user"></i> اسمك:</label>
-            <input type="text" id="usernameInput" placeholder="اكتب اسمك هنا..." maxlength="15">
+            <label><i class="fa-solid fa-user"></i> اسم اللاعب:</label>
+            <input type="text" id="usernameInput" placeholder="اكتب اسمك هنا..." maxlength="15" autocomplete="off">
         </div>
 
-        <button class="btn btn-create" onclick="createRoom()"><i class="fa-solid fa-plus-circle"></i> إنشاء غرفة جديدة (لاعب أبيض)</button>
-        
-        <div class="divider"><span>أو الانضمام</span></div>
-
-        <div class="input-group">
-            <label><i class="fa-solid fa-key"></i> كود الغرفة:</label>
-            <input type="text" id="roomCodeInput" placeholder="أدخل كود الصديق...">
-        </div>
-        
-        <button class="btn btn-join" onclick="joinRoom()"><i class="fa-solid fa-right-to-bracket"></i> انضمام للعب (لاعب أسود)</button>
-        <button class="btn btn-spectate" onclick="spectateRoom()"><i class="fa-solid fa-eye"></i> مراقبة الجيم (مشاهد)</button>
+        <button class="btn" onclick="saveAndProceed()"><i class="fa-solid fa-arrow-left"></i> التالي</button>
     </div>
 
     <script>
@@ -88,43 +72,14 @@
             }
         });
 
-        function saveUsername() {
-            const username = document.getElementById('usernameInput').value.trim();
+        function saveAndProceed() {
+            const username = document.getElementById('usernameInput'].value.trim();
             if (!username) {
-                alert('الرجاء إدخال اسم اللاعب أولاً!');
-                return null;
+                alert('الرجاء إدخال اسمك أولاً!');
+                return;
             }
             localStorage.setItem('chess_username', username);
-            return username;
-        }
-
-        function createRoom() {
-            if (!saveUsername()) return;
-            window.location.href = 'online-create.html';
-        }
-
-        function joinRoom() {
-            if (!saveUsername()) return;
-            const code = document.getElementById('roomCodeInput').value.trim();
-            if (!code) {
-                alert('الرجاء إدخال كود الغرفة للانضمام!');
-                return;
-            }
-            localStorage.setItem('chess_join_code', code);
-            localStorage.setItem('chess_role', 'player');
-            window.location.href = 'online-join.html';
-        }
-
-        function spectateRoom() {
-            if (!saveUsername()) return;
-            const code = document.getElementById('roomCodeInput').value.trim();
-            if (!code) {
-                alert('الرجاء إدخال كود الغرفة لمراقبتها!');
-                return;
-            }
-            localStorage.setItem('chess_join_code', code);
-            localStorage.setItem('chess_role', 'spectator');
-            window.location.href = 'online-join.html';
+            window.location.href = 'menu.html';
         }
     </script>
 </body>
