@@ -72,8 +72,10 @@
             <input type="text" id="roomCodeInput" placeholder="أدخل كود الصديق..." autocomplete="off">
         </div>
         
-        <button class="btn btn-join" onclick="goToJoin('player')"><i class="fa-solid fa-right-to-bracket"></i> انضمام للعب (لاعب)</button>
-        <button class="btn btn-spectate" onclick="goToJoin('spectator')"><i class="fa-solid fa-eye"></i> مراقبة الجيم (مشاهد)</button>
+        <!-- التوجيه لصفحة الانضمام للعب المستقلة -->
+        <button class="btn btn-join" onclick="goToPage('online-join.html')"><i class="fa-solid fa-right-to-bracket"></i> انضمام للعب (لاعب)</button>
+        <!-- التوجيه لصفحة المراقبة المستقلة -->
+        <button class="btn btn-spectate" onclick="goToPage('online-spectate.html')"><i class="fa-solid fa-eye"></i> مراقبة الجيم (مشاهد)</button>
         
         <button class="btn btn-back" onclick="window.location.href='index.html'"><i class="fa-solid fa-arrow-right"></i> تغير الاسم</button>
     </div>
@@ -92,15 +94,14 @@
             window.location.href = 'online-create.html';
         }
 
-        function goToJoin(role) {
+        function goToPage(targetPage) {
             const code = document.getElementById('roomCodeInput').value.trim();
             if (!code) {
                 alert('الرجاء إدخال كود الغرفة أولاً!');
                 return;
             }
             localStorage.setItem('chess_join_code', code);
-            localStorage.setItem('chess_role', role);
-            window.location.href = 'online-join.html';
+            window.location.href = targetPage;
         }
     </script>
 </body>
