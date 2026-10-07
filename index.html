@@ -58,7 +58,7 @@
 
         <div class="input-group">
             <label><i class="fa-solid fa-user"></i> اسم اللاعب:</label>
-            <input type="text" id="usernameInput" placeholder="اكتب اسمك هنا..." maxlength="15" autocomplete="off">
+            <input type="text" id="usernameInput" placeholder="اكتب اسمك هنا..." maxlength="15" autocomplete="off" onkeydown="if(event.key==='Enter') saveAndProceed()">
         </div>
 
         <button class="btn" onclick="saveAndProceed()"><i class="fa-solid fa-arrow-left"></i> التالي</button>
@@ -73,15 +73,19 @@
         });
 
         function saveAndProceed() {
-            const username = document.getElementById('usernameInput'].value.trim();
+            // تم تصحيح طريقة استدعاء العنصر هنا لتعمل بدون أي أخطاء
+            const usernameInput = document.getElementById('usernameInput');
+            if (!usernameInput) return;
+            
+            const username = usernameInput.value.trim();
             if (!username) {
                 alert('الرجاء إدخال اسمك أولاً!');
                 return;
             }
+            
             localStorage.setItem('chess_username', username);
             window.location.href = 'menu.html';
         }
     </script>
 </body>
 </html>
-
