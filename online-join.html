@@ -3,315 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الغرفة - أونلاين</title>
-    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <title>شطرنج - غرفة اللعب / المراقبة</title>
+    <!-- مكتبة الشطرنج والواجهة -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; user-select: none; }
-        html, body {
-            width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0;
-            background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
-            color: white; font-family: Tahoma, sans-serif;
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            position: fixed; padding-top: 15px; padding-bottom: 25px;
+        body {
+            margin: 0; padding: 0; background: #121212; color: white;
+            font-family: Tahoma, sans-serif; display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-start; height: 100vh; overflow: hidden;
+        }
+        header {
+            width: 100%; padding: 10px; background: #1f1f1f; display: flex;
+            justify-content: space-between; align-items: center; border-bottom: 1px solid #333;
+        }
+        .role-badge { background: #3b82f6; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+        .back-btn { background: #333; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; }
+        
+        .main-container { flex: 1; width: 100%; max-width: 450px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; }
+        
+        #status { font-size: 13px; color: #eab308; margin-bottom: 8px; text-align: center; }
+        
+        .board-box {
+            width: 320px; height: 320px; background: #262626; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; border: 2px solid #383838;
+            font-size: 14px; color: #aaa; text-align: center; padding: 20px;
         }
 
-        h2 { margin: 0; font-size: 19px; text-align: center; color: #a855f7; text-shadow: 0 0 12px rgba(168, 85, 247, 0.4); }
-
-        .board-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
-        #board { width: 330px; max-width: 85vw; max-height: 85vw; border-radius: 12px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.8), 0 0 15px rgba(168, 85, 247, 0.2); border: 2px solid #2a2a2a; min-height: 300px; background: #262626; }
-
-        .white-1e1d7 { background-color: #262626 !important; }
-        .black-3c85d { background-color: #121212 !important; }
-
-        #status { font-size: 13px; background: linear-gradient(135deg, #1f1f1f, #252525); border: 1px solid #383838; color: #e2e8f0; padding: 10px 18px; border-radius: 12px; text-align: center; max-width: 90vw; margin-bottom: 12px; }
-
-        .controls { display: flex; gap: 8px; width: 90vw; max-width: 350px; z-index: 10; }
-        button, .btn-action { flex: 1; padding: 11px 8px; border-radius: 12px; border: none; font-size: 12px; font-family: Tahoma; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
-        .btn-start { background: linear-gradient(135deg, #22c55e, #16a34a); }
-        .btn-settings { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-        .btn-back { background: linear-gradient(135deg, #ef4444, #dc2626); }
-
-        /* الشات والإعدادات العائمة */
-        .chat-fab { position: fixed; bottom: 20px; left: 20px; width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; border: none; font-size: 22px; cursor: pointer; z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .chat-badge { position: absolute; top: -2px; right: -2px; background: #ef4444; color: white; font-size: 11px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
-        .chat-badge.hidden { display: none; }
-        .chat-modal { position: fixed; bottom: 80px; left: 20px; width: 310px; height: 390px; background: #141416; border: 1px solid #3f3f46; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; z-index: 10000; transition: all 0.3s; }
-        .chat-modal.hidden { opacity: 0; pointer-events: none; transform: translateY(20px) scale(0.95); }
-        .chat-header { background: #1f1f23; padding: 12px 16px; color: #a855f7; font-weight: bold; font-size: 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #27272a; }
-        .chat-header button { background: none; border: none; color: #a1a1aa; font-size: 20px; cursor: pointer; }
-        .chat-messages { flex-grow: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .msg { max-width: 82%; padding: 8px 12px; border-radius: 12px; font-size: 13px; word-break: break-word; }
-        .msg.system { background: #27272a; color: #a1a1aa; text-align: center; max-width: 100%; font-size: 11px; }
-        .msg.sent { background: #a855f7; color: white; align-self: flex-start; font-weight: bold; }
-        .msg.received { background: #27272a; color: #e4e4e7; align-self: flex-end; }
-        .quick-emotes { display: flex; gap: 6px; padding: 8px; background: #18181b; overflow-x: auto; border-top: 1px solid #27272a; }
-        .quick-emotes button { background: #27272a; color: #e4e4e7; border: 1px solid #3f3f46; padding: 5px 10px; border-radius: 20px; font-size: 12px; white-space: nowrap; cursor: pointer; }
-        .chat-input-area { display: flex; padding: 8px; background: #141416; border-top: 1px solid #27272a; gap: 6px; }
-        .chat-input-area input { flex-grow: 1; background: #1f1f23; border: 1px solid #3f3f46; color: white; padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none; }
-        .chat-input-area button { background: #a855f7; color: white; border: none; padding: 0 14px; border-radius: 8px; cursor: pointer; }
+        .chat-box {
+            width: 100%; max-width: 350px; background: #1a1a1a; border: 1px solid #333;
+            border-radius: 10px; margin-top: 10px; display: flex; flex-direction: column; height: 110px;
+        }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 6px; font-size: 11px; display: flex; flex-direction: column; gap: 4px; }
+        .chat-input-area { display: flex; border-top: 1px solid #333; }
+        .chat-input-area input { flex: 1; background: transparent; border: none; color: white; padding: 8px; font-size: 11px; outline: none; text-align: right; }
+        .chat-input-area button { background: #3b82f6; border: none; color: white; padding: 0 15px; cursor: pointer; font-weight: bold; font-size: 11px; }
     </style>
 </head>
 <body>
 
-    <h2 id="page-title"><i class="fa-solid fa-right-to-bracket"></i> انضمام للغرفة</h2>
+    <header>
+        <button class="back-btn" onclick="window.location.href='menu.html'"><i class="fa-solid fa-arrow-right"></i> القائمة</button>
+        <div style="font-size: 13px;" id="myName">المستخدم</div>
+        <div class="role-badge" id="roleBadge">جاري التحديد...</div>
+    </header>
 
-    <div class="board-container">
-        <div id="board"></div>
-    </div>
-
-    <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-        <div id="status">جاري الاتصال بالمضيف...</div>
-        <div class="controls">
-            <button class="btn-start" onclick="startNewRound()"><i class="fa-solid fa-rotate-right"></i> طلب جولة جديدة</button>
-            <button class="btn-action btn-settings" onclick="toggleSettings()"><i class="fa-solid fa-gear"></i> الإعدادات</button>
-            <a href="index.html" class="btn-action btn-back" onclick="leaveRoom()"><i class="fa-solid fa-house"></i> القائمة</a>
+    <div class="main-container">
+        <div id="status">جاري الاتصال بغرفة المضيف...</div>
+        
+        <div class="board-box" id="boardArea">
+            [ لوحة الشطرنج جاهزة - في انتظار مزامنة الحركات مع المضيف ]
         </div>
-    </div>
 
-    <!-- نافذة الإعدادات العائمة -->
-    <div id="settings-modal" class="chat-modal hidden">
-        <div class="chat-header">
-            <span><i class="fa-solid fa-gear"></i> الإعدادات</span>
-            <button onclick="toggleSettings()">&times;</button>
-        </div>
-        <div style="padding: 15px; display: flex; flex-direction: column; gap: 14px; font-size: 13px; color: #e4e4e7;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #27272a; padding-bottom: 10px;">
-                <span>المؤثرات الصوتية الإبداعية</span>
-                <input type="checkbox" id="modalSoundToggle" onchange="toggleSetting('chess_sound', this.checked)">
+        <div class="chat-box">
+            <div class="chat-messages" id="chatMessages">
+                <div style="color: #777;">مرحباً بك في الشات الجماعي للغرفة...</div>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #27272a; padding-bottom: 10px;">
-                <span>الاهتزاز</span>
-                <input type="checkbox" id="modalVibrateToggle" onchange="toggleSetting('chess_vibrate', this.checked)">
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()">إرسال</button>
             </div>
-            <button onclick="toggleSettings()" style="margin-top: auto; padding: 10px; background: #a855f7; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;">إغلاق وحفظ</button>
         </div>
     </div>
-
-    <button id="chat-toggle-btn" class="chat-fab" onclick="toggleChat()"><i class="fa-solid fa-comments"></i><span id="chat-badge" class="chat-badge hidden">0</span></button>
-
-    <div id="chat-modal" class="chat-modal hidden">
-        <div class="chat-header"><span><i class="fa-solid fa-messages"></i> شات الغرفة الجماعي</span><button onclick="toggleChat()">&times;</button></div>
-        <div id="chat-messages" class="chat-messages"><div class="msg system">مرحباً! الشات متصل مع الجميع. ♟️</div></div>
-        <div class="quick-emotes">
-            <button onclick="sendQuickMsg('😂')">😂</button>
-            <button onclick="sendQuickMsg('🔥')">🔥</button>
-            <button onclick="sendQuickMsg('👏')">👏</button>
-            <button onclick="sendQuickMsg('كش ملك! 👑')">كش ملك! 👑</button>
-            <button onclick="sendQuickMsg('جيم حلو! ♟️')">جيم حلو!</button>
-        </div>
-        <div class="chat-input-area">
-            <input type="text" id="chat-input" placeholder="اكتب رسالتك..." maxlength="100">
-            <button onclick="handleSend()"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
-    </div>
-
-    <!-- مؤثرات صوتية كرييتف -->
-    <audio id="creativeMoveSound" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
-
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
     <script>
-        window.addEventListener('DOMContentLoaded', function() {
-            var peer = null, conn = null;
-            var board = null, game = new Chess();
-            var moveSound = document.getElementById('creativeMoveSound');
-            
-            const role = localStorage.getItem('chess_role') || 'player'; 
-            const roomCode = localStorage.getItem('chess_join_code');
-            const myName = localStorage.getItem('chess_username') || 'عضو';
+        const username = localStorage.getItem('chess_username') || 'مشترك';
+        const roomCode = localStorage.getItem('chess_join_code');
+        const role = localStorage.getItem('chess_role') || 'player'; // player أو spectator
 
-            if (role === 'spectator') {
-                document.getElementById('page-title').innerHTML = '<i class="fa-solid fa-eye"></i> وضع المراقبة (مشاهد)';
-            }
+        document.getElementById('myName').innerText = username;
+        
+        const roleBadge = document.getElementById('roleBadge');
+        if (role === 'player') {
+            roleBadge.innerText = 'لاعب (أسود)';
+            roleBadge.style.background = '#a855f7';
+        } else {
+            roleBadge.innerText = 'مشاهد (مراقب)';
+            roleBadge.style.background = '#3b82f6';
+        }
 
-            if(document.getElementById('modalSoundToggle')) {
-                document.getElementById('modalSoundToggle').checked = localStorage.getItem('chess_sound') !== 'false';
-                document.getElementById('modalVibrateToggle').checked = localStorage.getItem('chess_vibrate') !== 'false';
-            }
+        if (!roomCode) {
+            alert('خطأ: لا يوجد كود غرفة مسجل!');
+            window.location.href = 'menu.html';
+        }
 
-            window.toggleSettings = function() {
-                const modal = document.getElementById('settings-modal');
-                if (modal) modal.classList.toggle('hidden');
-            };
+        let peer = null;
+        let hostConnection = null;
 
-            window.toggleSetting = function(key, val) {
-                localStorage.setItem(key, val);
-            };
-
-            window.toggleChat = function() {
-                const chatModal = document.getElementById('chat-modal');
-                const chatBadge = document.getElementById('chat-badge');
-                if (chatModal) {
-                    chatModal.classList.toggle('hidden');
-                    if (!chatModal.classList.contains('hidden') && chatBadge) {
-                        chatBadge.textContent = '0';
-                        chatBadge.classList.add('hidden');
-                    }
+        function initJoinPeer() {
+            // استخدام اتصال Peer عشوائي للعميل والانضمام لكود المضيف مع خوادم الـ STUN
+            peer = new Peer({
+                config: {
+                    'iceServers': [
+                        { url: 'stun:stun.l.google.com:19302' },
+                        { url: 'stun:stun1.l.google.com:19302' }
+                    ]
                 }
-            };
-
-            window.addMessage = function(sender, text, type = 'received') {
-                const chatMessages = document.getElementById('chat-messages');
-                if (chatMessages) {
-                    const msgDiv = document.createElement('div');
-                    msgDiv.className = `msg ${type}`;
-                    msgDiv.textContent = sender ? `${sender}: ${text}` : text;
-                    chatMessages.appendChild(msgDiv);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-            };
-
-            window.handleSend = function() {
-                const chatInput = document.getElementById('chat-input');
-                if (!chatInput) return;
-                const text = chatInput.value.trim();
-                if (text) {
-                    addMessage(null, text, 'sent');
-                    chatInput.value = '';
-                    if (conn && conn.open) {
-                        conn.send({ type: 'chat', sender: myName, message: text });
-                    }
-                }
-            };
-
-            window.sendQuickMsg = function(text) {
-                addMessage(null, text, 'sent');
-                if (conn && conn.open) {
-                    conn.send({ type: 'chat', sender: myName, message: text });
-                }
-            };
-
-            function playCreativeSound() {
-                const soundEnabled = localStorage.getItem('chess_sound') !== 'false';
-                if (soundEnabled && moveSound) {
-                    moveSound.currentTime = 0;
-                    moveSound.play().catch(e => {});
-                }
-            }
-
-            peer = new Peer();
-            peer.on('open', () => {
-                if (!roomCode) {
-                    alert('لا يوجد كود غرفة!');
-                    window.location.href = 'index.html';
-                    return;
-                }
-                conn = peer.connect(roomCode);
-                setupConnection();
             });
 
-            peer.on('error', () => {
-                $('#status').text('فشل الاتصال بالغرفة!');
+            peer.on('open', (id) => {
+                document.getElementById('status').innerText = 'جاري الاتصال بالغرفة...';
+                
+                // الاتصال بغرفة المضيف
+                hostConnection = peer.connect(roomCode);
+
+                hostConnection.on('open', () => {
+                    document.getElementById('status').innerText = 'تم الاتصال بالغرفة بنجاح!';
+                    document.getElementById('status').style.color = '#22c55e';
+                    appendSystemMessage('متصل بالمضيف الآن.');
+                });
+
+                hostConnection.on('data', (data) => {
+                    handleIncomingData(data);
+                });
+
+                hostConnection.on('close', () => {
+                    document.getElementById('status').innerText = 'انقطع الاتصال بالمضيف!';
+                    document.getElementById('status').style.color = '#ef4444';
+                    appendSystemMessage('تم إغلاق الغرفة من قبل المضيف.');
+                });
             });
 
-            function setupConnection() {
-                conn.on('open', () => {
-                    $('#status').text(role === 'spectator' ? 'متصل كمشاهد (تشاهد الجيم)' : 'متصل بنجاح (دورك الأسود)');
-                    addMessage(null, 'تم الاتصال بالغرفة بنجاح!', 'system');
-                });
-
-                conn.on('data', (data) => {
-                    if (data.type === 'move') {
-                        game.move(data.move);
-                        board.position(game.fen());
-                        playCreativeSound();
-                        updateStatusText();
-                    } else if (data.type === 'chat') {
-                        addMessage(data.sender, data.message, 'received');
-                        const chatModal = document.getElementById('chat-modal');
-                        const chatBadge = document.getElementById('chat-badge');
-                        if (chatModal && chatModal.classList.contains('hidden') && chatBadge) {
-                            let count = parseInt(chatBadge.textContent || '0') + 1;
-                            chatBadge.textContent = count;
-                            chatBadge.classList.remove('hidden');
-                        }
-                    } else if (data.type === 'start') {
-                        resetLocalBoard();
-                        addMessage(null, 'بدأت جولة جديدة!', 'system');
-                    }
-                });
-
-                conn.on('close', () => {
-                    $('#status').text('انقطع الاتصال مع المضيف!');
-                    addMessage(null, 'غادر المضيف الغرفة.', 'system');
-                });
-            }
-
-            var savedTheme = localStorage.getItem('chess_theme') || 'alpha';
-            var themeUrl = savedTheme === 'wikipedia' ? 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png' : 'https://chessboardjs.com/img/chesspieces/alpha/{piece}.png';
-
-            board = Chessboard('board', {
-                draggable: role === 'player', 
-                position: 'start',
-                orientation: role === 'spectator' ? 'white' : 'black',
-                pieceTheme: themeUrl,
-                onDrop: onDropPiece,
-                onSnapEnd: function() { board.position(game.fen()); }
+            peer.on('error', (err) => {
+                console.error(err);
+                document.getElementById('status').innerText = 'تعذر العثور على الغرفة أو خطأ في الاتصال.';
+                document.getElementById('status').style.color = '#ef4444';
             });
+        }
 
-            function onDropPiece(source, target) {
-                if (role === 'spectator') return 'snapback'; 
-                if (!conn || !conn.open) return 'snapback';
-                if (game.turn() !== 'b') return 'snapback'; 
-
-                var move = game.move({ from: source, to: target, promotion: 'q' });
-                if (move === null) return 'snapback';
-
-                playCreativeSound();
-                board.position(game.fen());
-                updateStatusText();
-
-                if (conn && conn.open) {
-                    conn.send({ type: 'move', move: { from: source, to: target, promotion: 'q' } });
-                }
+        function handleIncomingData(data) {
+            if (data.type === 'chat') {
+                appendChatMessage(data.sender, data.text);
+            } else if (data.type === 'move') {
+                console.log('مستقبل نقلة من المضيف:', data.move);
             }
+        }
 
-            window.startNewRound = function() {
-                if (role === 'spectator') {
-                    alert('المراقبون لا يمكنهم بدء جولة جديدة، فقط اللاعبين.');
-                    return;
-                }
-                if (!conn || !conn.open) return;
-                resetLocalBoard();
-                conn.send({ type: 'start' });
-            };
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text || !hostConnection || !hostConnection.open) return;
 
-            function resetLocalBoard() {
-                game.reset();
-                if (board) board.start();
-                updateStatusText();
-            }
+            appendChatMessage(username, text);
+            const msgData = { type: 'chat', sender: username, text: text };
+            hostConnection.send(msgData);
 
-            window.leaveRoom = function() {
-                if (conn) conn.close();
-                if (peer) peer.destroy();
-            };
+            input.value = '';
+        }
 
-            function updateStatusText() {
-                var $status =$('#status');
-                if (game.in_checkmate()) {
-                    $status.html('<i class="fa-solid fa-crown"></i> انتهت اللعبة بـ كش ملك!');
-                } else if (game.in_draw()) {
-                    $status.html('تعادل!');
-                } else {
-                    if (role === 'spectator') {
-                        $status.text(game.turn() === 'w' ? 'دور الأبيض' : 'دور الأسود');
-                    } else {
-                        $status.text(game.turn() === 'b' ? 'دورك (الأسود)' : 'انتظار دور الأبيض...');
-                    }
-                }
-            }
+        function appendChatMessage(sender, text) {
+            const container = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.innerHTML = `<b style="color: #3b82f6;">${sender}:</b> ${text}`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
 
-            const chatInput = document.getElementById('chat-input');
-            if (chatInput) {
-                chatInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') handleSend();
-                });
-            }
+        function appendSystemMessage(text) {
+            const container = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.style.color = '#eab308';
+            div.style.fontStyle = 'italic';
+            div.innerText = text;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // بدء التشغيل عند تحميل الصفحة
+        window.addEventListener('DOMContentLoaded', () => {
+            initJoinPeer();
         });
     </script>
 </body>
