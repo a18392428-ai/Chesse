@@ -32,14 +32,15 @@
         input[type="text"] {
             width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #444;
             background: #121212; color: white; font-size: 14px; text-align: center;
-            outline: none; transition: 0.3s;
+            outline: none; transition: 0.3s; direction: ltr;
         }
+        input[type="text"]::placeholder { direction: rtl; }
         input[type="text"]:focus { border-color: #a855f7; box-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
 
         .btn {
             width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 14px;
             font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            gap: 8px; background: linear-gradient(135deg, #a855f7, #9333ea); color: white;
+            flex-direction: row-reverse; gap: 8px; background: linear-gradient(135deg, #a855f7, #9333ea); color: white;
             box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); transition: 0.3s; text-decoration: none;
         }
         .btn:hover { transform: translateY(-2px); }
@@ -65,6 +66,14 @@
     </div>
 
     <script>
+        // اختبار التخزين المحلي للتأكد من عمله داخل الـ WebView
+        try {
+            localStorage.setItem('test_storage', 'ok');
+            localStorage.removeItem('test_storage');
+        } catch(e) {
+            console.warn('LocalStorage is restricted in this webview context.');
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             const savedName = localStorage.getItem('chess_username');
             if (savedName) {
@@ -73,7 +82,6 @@
         });
 
         function saveAndProceed() {
-            // تم تصحيح طريقة استدعاء العنصر هنا لتعمل بدون أي أخطاء
             const usernameInput = document.getElementById('usernameInput');
             if (!usernameInput) return;
             
@@ -83,8 +91,14 @@
                 return;
             }
             
-            localStorage.setItem('chess_username', username);
-            window.location.href = 'menu.html';
+            try {
+                localStorage.setItem('chess_username', username);
+                window.location.href = 'menu.html';
+            } catch (e) {
+                // بديل آمن لو الـ LocalStorage مقفول تماماً في التطبيق
+                window.name = username;
+                window.location.href = 'menu.html';
+            }
         }
     </script>
 </body>
