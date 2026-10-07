@@ -17,41 +17,26 @@
 
         .card {
             background: linear-gradient(135deg, #1f1f1f, #252525);
-            border: 1px solid #383838; padding: 22px; border-radius: 16px;
-            width: 100%; max-width: 350px; text-align: center;
+            border: 1px solid #383838; padding: 25px; border-radius: 16px;
+            width: 100%; max-width: 330px; text-align: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.8);
             animation: zoomIn 0.4s ease-out;
         }
 
         h1 { margin-top: 0; font-size: 20px; color: #a855f7; text-shadow: 0 0 12px rgba(168, 85, 247, 0.4); }
-        .welcome-user { font-size: 13px; color: #22c55e; margin-bottom: 15px; font-weight: bold; }
-
-        .input-group { margin-bottom: 12px; text-align: right; }
-        .input-group label { display: block; font-size: 11px; color: #d1d5db; margin-bottom: 4px; }
-        
-        input[type="text"] {
-            width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #444;
-            background: #121212; color: white; font-size: 13px; text-align: center;
-            outline: none; transition: 0.3s; direction: ltr; /* لضمان كتابة الكود بشكل سليم */
-        }
-        input[type="text"]::placeholder { direction: rtl; }
-        input[type="text"]:focus { border-color: #a855f7; box-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
+        .welcome-user { font-size: 13px; color: #22c55e; margin-bottom: 20px; font-weight: bold; }
 
         .btn {
-            width: 100%; padding: 11px; border-radius: 10px; border: none; font-size: 13px;
+            width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 13px;
             font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            flex-direction: row-reverse; /* لتثبيت مكان الأيقونة يمين النص بالعربي */
-            gap: 8px; margin-top: 8px; text-decoration: none; color: white; transition: 0.3s;
+            flex-direction: row-reverse; gap: 8px; margin-top: 10px; text-decoration: none; color: white; transition: 0.3s;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
         .btn:hover { transform: translateY(-2px); }
         .btn-create { background: linear-gradient(135deg, #22c55e, #16a34a); }
         .btn-join { background: linear-gradient(135deg, #a855f7, #9333ea); }
         .btn-spectate { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-        .btn-back { background: #333; font-size: 11px; padding: 8px; margin-top: 15px; flex-direction: row-reverse; }
-
-        .divider { margin: 12px 0; border-top: 1px solid #333; position: relative; }
-        .divider span { position: absolute; top: -9px; right: 50%; transform: translateX(50%); background: #222; padding: 0 8px; font-size: 10px; color: #777; }
+        .btn-back { background: #333; font-size: 11px; padding: 9px; margin-top: 15px; }
 
         @keyframes zoomIn {
             from { opacity: 0; transform: scale(0.9); }
@@ -63,19 +48,11 @@
 
     <div class="card">
         <h1><i class="fa-solid fa-chess"></i> القائمة الرئيسية</h1>
-        <div id="welcomeText" class="welcome-user">مرحباً بك</div>
+        <div id="welcomeText" class="welcome-user">مهلاً بك</div>
 
-        <button class="btn btn-create" onclick="goToCreate()"><i class="fa-solid fa-plus-circle"></i> إنشاء غرفة جديدة (المضيف)</button>
-        
-        <div class="divider"><span>أو الانضمام</span></div>
-
-        <div class="input-group">
-            <label><i class="fa-solid fa-key"></i> كود الغرفة:</label>
-            <input type="text" id="roomCodeInput" placeholder="أدخل كود الصديق..." autocomplete="off">
-        </div>
-        
-        <button class="btn btn-join" onclick="goToPage('online-join.html')"><i class="fa-solid fa-right-to-bracket"></i> انضمام للعب (لاعب)</button>
-        <button class="btn btn-spectate" onclick="goToPage('online-spectate.html')"><i class="fa-solid fa-eye"></i> مراقبة الجيم (مشاهد)</button>
+        <button class="btn btn-create" onclick="window.location.href='online-create.html'"><i class="fa-solid fa-plus-circle"></i> إنشاء غرفة جديدة (المضيف)</button>
+        <button class="btn btn-join" onclick="window.location.href='online-join.html'"><i class="fa-solid fa-right-to-bracket"></i> انضمام للعب (لاعب)</button>
+        <button class="btn btn-spectate" onclick="window.location.href='online-spectate.html'"><i class="fa-solid fa-eye"></i> مراقبة الجيم (مشاهد)</button>
         
         <button class="btn btn-back" onclick="window.location.href='index.html'"><i class="fa-solid fa-arrow-right"></i> تغير الاسم</button>
     </div>
@@ -87,22 +64,9 @@
                 window.location.href = 'index.html';
                 return;
             }
+            // تعرض اسم المستخدم الذي قام بالتسجيل فقط بدون أي أسماء ثابته
             document.getElementById('welcomeText').innerText = `أهلاً بك، ${username} ✨`;
         });
-
-        function goToCreate() {
-            window.location.href = 'online-create.html';
-        }
-
-        function goToPage(targetPage) {
-            const code = document.getElementById('roomCodeInput').value.trim();
-            if (!code) {
-                alert('الرجاء إدخال كود الغرفة أولاً!');
-                return;
-            }
-            localStorage.setItem('chess_join_code', code);
-            window.location.href = targetPage;
-        }
     </script>
 </body>
 </html>
