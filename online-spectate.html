@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>شطرنج - غرفة المراقبة</title>
+    <title>شطرنج - مراقبة الجيم (مشاهد)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
     <style>
@@ -17,7 +17,7 @@
             width: 100%; padding: 10px; background: #1f1f1f; display: flex;
             justify-content: space-between; align-items: center; border-bottom: 1px solid #333;
         }
-        .spectator-badge { background: #3b82f6; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+        .role-badge { background: #3b82f6; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
         .back-btn { background: #333; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; }
         
         .main-container { flex: 1; width: 100%; max-width: 450px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; }
@@ -44,22 +44,22 @@
     <header>
         <button class="back-btn" onclick="window.location.href='menu.html'"><i class="fa-solid fa-arrow-right"></i> القائمة</button>
         <div style="font-size: 13px;" id="myName">مشاهد</div>
-        <div class="spectator-badge"><i class="fa-solid fa-eye"></i> مراقب</div>
+        <div class="role-badge"><i class="fa-solid fa-eye"></i> مراقب (مشاهد)</div>
     </header>
 
     <div class="main-container">
-        <div id="status">جاري الاتصال بالغرفة للمتابعة...</div>
+        <div id="status">جاري الاتصال بغرفة المضيف...</div>
         
         <div class="board-box" id="boardArea">
-            [ وضع المراقبة - تتفرج على الجيم على الهواء ]
+            [ لوحة الشطرنج - وضع المراقبة (رؤية فقط) ]
         </div>
 
         <div class="chat-box">
             <div class="chat-messages" id="chatMessages">
-                <div style="color: #777;">شات الغرفة (وضع مشاهدة)...</div>
+                <div style="color: #777;">شات الغرفة (مشاهد)...</div>
             </div>
             <div class="chat-input-area">
-                <input type="text" id="chatInput" placeholder="اكتب رسالتك للمتواجدين..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+                <input type="text" id="chatInput" placeholder="اكتب رسالة (مرئية للجميع)..." onkeydown="if(event.key==='Enter') sendChatMessage()">
                 <button onclick="sendChatMessage()">إرسال</button>
             </div>
         </div>
@@ -67,7 +67,7 @@
 
     <script>
         const username = localStorage.getItem('chess_username') || 'مشاهد';
-        const roomCode = localStorage.getItem('chess_join_code');
+        const roomCode = localStorage.getItem('chess_join_code'); // الكود اليدوي اللي كتبه المستخدم في القائمة
         document.getElementById('myName').innerText = username;
 
         if (!roomCode) {
@@ -78,7 +78,7 @@
         let peer = null;
         let hostConnection = null;
 
-        function initSpectatorPeer() {
+        function initSpectatePeer() {
             peer = new Peer({
                 config: {
                     'iceServers': [
@@ -89,19 +89,23 @@
             });
 
             peer.on('open', () => {
+                // الاتصال بغرفة المضيف مباشرة بالكود اليدوي
                 hostConnection = peer.connect(roomCode);
 
                 hostConnection.on('open', () => {
-                    document.getElementById('status').innerText = 'تم الاتصال بنجاح (وضع المراقبة)';
+                    document.getElementById('status').innerText = `تم الاتصال بالغرفة (${roomCode}) بنجاح!`;
                     document.getElementById('status').style.color = '#22c55e';
-                    appendSystemMessage('تم الانضمام كمشاهد.');
+                    appendSystemMessage('تم الانضمام كـ مشاهد (مراقب).');
+                    
+                    // إبلاغ المضيف بأن الشخص ده دخل كمشاهد
+                    hostConnection.send({ type: 'join_spectator', sender: username });
                 });
 
                 hostConnection.on('data', (data) => {
                     if (data.type === 'chat') {
                         appendChatMessage(data.sender, data.text);
                     } else if (data.type === 'move') {
-                        console.log('متابعة حركة على اللوحة:', data.move);
+                        console.log('مستقبل نقلة للمشاهدة:', data.move);
                     }
                 });
 
@@ -112,7 +116,7 @@
             });
 
             peer.on('error', () => {
-                document.getElementById('status').innerText = 'تعذر الاتصال بالغرفة.';
+                document.getElementById('status').innerText = 'تعذر العثور على الغرفة بهذا الكود!';
                 document.getElementById('status').style.color = '#ef4444';
             });
         }
@@ -145,7 +149,7 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        window.addEventListener('DOMContentLoaded', initSpectatorPeer);
+        window.addEventListener('DOMContentLoaded', initSpectatePeer);
     </script>
 </body>
 </html>
