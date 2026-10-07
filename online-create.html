@@ -65,7 +65,6 @@
     <div class="main-container">
         <div id="status">أدخل كوداً مميزاً لإنشاء الغرفة</div>
         
-        <!-- صندوق إدخال الكود اليدوي -->
         <div class="setup-box" id="setupBox">
             <label style="font-size: 12px; color: #ccc;"><i class="fa-solid fa-key"></i> اختر كود الغرفة (مثال: room123):</label>
             <input type="text" id="customRoomCode" placeholder="اكتب الكود هنا..." autocomplete="off">
@@ -103,24 +102,27 @@
                 return;
             }
 
-            document.getElementById('status.innerText') = 'جاري حجز الغرفة...';
+            // تم تصحيح الخطأ البرمجي هنا
+            document.getElementById('status').innerText = 'جاري حجز الغرفة...';
 
-            // إنشاء اتصال Peer باستخدام الكود اليدوي للمضيف
-            peer = new Peer(roomCode, {
-                config: {
-                    'iceServers': [
-                        { url: 'stun:stun.l.google.com:19302' },
-                        { url: 'stun:stun1.l.google.com:19302' }
-                    ]
-                }
-            });
+            try {
+                peer = new Peer(roomCode, {
+                    config: {
+                        'iceServers': [
+                            { url: 'stun:stun.l.google.com:19302' },
+                            { url: 'stun:stun1.l.google.com:19302' }
+                        ]
+                    }
+                });
+            } catch (e) {
+                alert('خطأ في تهيئة الاتصال: ' + e.message);
+                return;
+            }
 
             peer.on('open', (id) => {
-                // الكود متاح وتم حجزه بنجاح
                 document.getElementById('status').innerText = `تم إنشاء الغرفة بنجاح! الكود: ${id}`;
                 document.getElementById('status').style.color = '#22c55e';
                 
-                // إخفاء خانة الإدخال وإظهار اللوحة والشات
                 document.getElementById('setupBox').style.display = 'none';
                 document.getElementById('boardArea').style.display = 'flex';
                 document.getElementById('chatContainer').style.display = 'flex';
@@ -134,11 +136,12 @@
                     document.getElementById('status').innerText = 'الكود مستخدم، جرب كوداً آخر.';
                     document.getElementById('status').style.color = '#ef4444';
                 } else {
-                    alert('حدث خطأ: ' + err.type);
+                    alert('حدث خطأ في الشبكة: ' + err.type);
+                    document.getElementById('status').innerText = 'فشل إنشاء الغرفة.';
+                    document.getElementById('status').style.color = '#ef4444';
                 }
             });
 
-            // استقبال اتصالات اللاعبين أو المشاهدين
             peer.on('connection', (conn) => {
                 conn.on('data', (data) => {
                     if (data.type === 'join_player') {
