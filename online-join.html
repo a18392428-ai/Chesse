@@ -94,7 +94,7 @@
         .btn-settings { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
         .btn-back { background: linear-gradient(135deg, #ef4444, #dc2626); }
 
-        /* --- الشات العائم المطور --- */
+        /* --- الشات العائم والمودال --- */
         .chat-fab {
             position: fixed; bottom: 20px; left: 20px; width: 52px; height: 52px; border-radius: 50%;
             background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; border: none; font-size: 22px;
@@ -155,8 +155,31 @@
         <div id="status">اكتب الكود واضغط انضمام للبدء</div>
         <div class="controls">
             <button class="btn-start" onclick="startNewRound()"><i class="fa-solid fa-rotate-right"></i> جولة جديدة</button>
-            <a href="settings.html" class="btn-action btn-settings"><i class="fa-solid fa-gear"></i> الإعدادات</a>
+            <button class="btn-action btn-settings" onclick="toggleSettings()"><i class="fa-solid fa-gear"></i> الإعدادات</button>
             <a href="index.html" class="btn-action btn-back" onclick="leaveRoom()"><i class="fa-solid fa-house"></i> القائمة</a>
+        </div>
+    </div>
+
+    <!-- نافذة الإعدادات العائمة -->
+    <div id="settings-modal" class="chat-modal hidden" style="left: auto; right: 20px; bottom: 80px;">
+        <div class="chat-header">
+            <span><i class="fa-solid fa-gear"></i> الإعدادات</span>
+            <button onclick="toggleSettings()">&times;</button>
+        </div>
+        <div style="padding: 15px; display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #27272a; padding-bottom: 8px;">
+                <span>أصوات النقلات</span>
+                <input type="checkbox" id="modalSoundToggle" onchange="toggleSetting('chess_sound', this.checked)">
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #27272a; padding-bottom: 8px;">
+                <span>الاهتزاز</span>
+                <input type="checkbox" id="modalVibrateToggle" onchange="toggleSetting('chess_vibrate', this.checked)">
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px;">
+                <span>موسيقى الخلفية</span>
+                <input type="checkbox" id="modalMusicToggle" onchange="toggleMusicModal(this.checked)">
+            </div>
+            <button onclick="toggleSettings()" style="margin-top: 10px; padding: 10px; background: #a855f7; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;">تم / العودة للعبة</button>
         </div>
     </div>
 
@@ -192,6 +215,7 @@
     </div>
 
     <audio id="moveSound" src="https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move.mp3" preload="auto"></audio>
+    <audio id="bgMusicModal" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop preload="auto"></audio>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
@@ -204,7 +228,26 @@
         var gameStarted = false;
         var moveAudio = document.getElementById('moveSound');
 
-        // --- دوال الشات العامة (Global Functions) ---
+        // --- دوال الإعدادات والموسيقى العائمة ---
+        window.toggleSettings = function() {
+            const modal = document.getElementById('settings-modal');
+            if (modal) modal.classList.toggle('hidden');
+        };
+
+        window.toggleSetting = function(key, val) {
+            localStorage.setItem(key, val);
+        };
+
+        window.toggleMusicModal = function(val) {
+            localStorage.setItem('chess_music', val);
+            const bgMusicModal = document.getElementById('bgMusicModal');
+            if (bgMusicModal) {
+                if (val) bgMusicModal.play().catch(e => {});
+                else bgMusicModal.pause();
+            }
+        };
+
+        // --- دوال الشات العامة ---
         window.toggleChat = function() {
             const chatModal = document.getElementById('chat-modal');
             const chatBadge = document.getElementById('chat-badge');
@@ -259,8 +302,18 @@
             }
         }
 
-        // إرسال بالضغط على زر Enter
         document.addEventListener('DOMContentLoaded', function() {
+            // تهيئة الإعدادات عند التحميل
+            if(document.getElementById('modalSoundToggle')) {
+                document.getElementById('modalSoundToggle').checked = localStorage.getItem('chess_sound') !== 'false';
+                document.getElementById('modalVibrateToggle').checked = localStorage.getItem('chess_vibrate') !== 'false';
+                document.getElementById('modalMusicToggle').checked = localStorage.getItem('chess_music') === 'true';
+                
+                if(localStorage.getItem('chess_music') === 'true') {
+                    document.getElementById('bgMusicModal').play().catch(e => {});
+                }
+            }
+
             const chatInput = document.getElementById('chat-input');
             if (chatInput) {
                 chatInput.addEventListener('keypress', function(e) {
@@ -275,6 +328,11 @@
             if (soundEnabled && moveAudio) {
                 moveAudio.currentTime = 0;
                 moveAudio.play().catch(e => {});
+            }
+
+            const vibrateEnabled = localStorage.getItem('chess_vibrate') !== 'false';
+            if (vibrateEnabled && navigator.vibrate) {
+                navigator.vibrate(40);
             }
         }
 
