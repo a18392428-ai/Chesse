@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>شطرنج - غرفة الإنشاء (المضيف)</title>
-    <!-- مكتبة الشطرنج والواجهة -->
+    <title>شطرنج - إنشاء غرفة (المضيف)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
     <style>
@@ -18,29 +17,41 @@
             width: 100%; padding: 10px; background: #1f1f1f; display: flex;
             justify-content: space-between; align-items: center; border-bottom: 1px solid #333;
         }
-        .room-code-badge { background: #a855f7; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+        .role-badge { background: #22c55e; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; color: black; }
         .back-btn { background: #333; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; }
         
         .main-container { flex: 1; width: 100%; max-width: 450px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; }
-        
         #status { font-size: 13px; color: #eab308; margin-bottom: 8px; text-align: center; }
         
-        /* شاشة اللوحة البسيطة أو مكان الرام */
-        .board-box {
-            width: 320px; height: 320px; background: #262626; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center; border: 2px solid #383838;
-            font-size: 14px; color: #aaa; text-align: center; padding: 20px;
+        .setup-box {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 15px;
+            width: 100%; max-width: 330px; text-align: center; margin-bottom: 10px;
+        }
+        .setup-box input {
+            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #444;
+            background: #121212; color: white; font-size: 13px; text-align: center; outline: none;
+            margin-top: 8px; direction: ltr;
+        }
+        .setup-box input::placeholder { direction: rtl; }
+        .create-btn {
+            background: #22c55e; color: black; border: none; padding: 10px; width: 100%;
+            border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 13px;
         }
 
-        /* نافذة الشات السريعة */
+        .board-box {
+            width: 280px; height: 280px; background: #262626; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; border: 2px solid #383838;
+            font-size: 12px; color: #aaa; text-align: center; padding: 15px; display: none;
+        }
+
         .chat-box {
             width: 100%; max-width: 350px; background: #1a1a1a; border: 1px solid #333;
-            border-radius: 10px; margin-top: 10px; display: flex; flex-direction: column; height: 110px;
+            border-radius: 10px; margin-top: 10px; display: flex; flex-direction: column; height: 100px; display: none;
         }
         .chat-messages { flex: 1; overflow-y: auto; padding: 6px; font-size: 11px; display: flex; flex-direction: column; gap: 4px; }
         .chat-input-area { display: flex; border-top: 1px solid #333; }
         .chat-input-area input { flex: 1; background: transparent; border: none; color: white; padding: 8px; font-size: 11px; outline: none; text-align: right; }
-        .chat-input-area button { background: #a855f7; border: none; color: white; padding: 0 15px; cursor: pointer; font-weight: bold; font-size: 11px; }
+        .chat-input-area button { background: #22c55e; color: black; border: none; padding: 0 15px; cursor: pointer; font-weight: bold; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -48,19 +59,26 @@
     <header>
         <button class="back-btn" onclick="window.location.href='menu.html'"><i class="fa-solid fa-arrow-right"></i> القائمة</button>
         <div style="font-size: 13px;" id="myName">المضيف</div>
-        <div class="room-code-badge" id="roomCodeDisplay">جاري التوليد...</div>
+        <div class="role-badge"><i class="fa-solid fa-chess-king"></i> المضيف (أبيض)</div>
     </header>
 
     <div class="main-container">
-        <div id="status">جاري الاتصال بالسيرفر وإنشاء الغرفة...</div>
+        <div id="status">أدخل كوداً مميزاً لإنشاء الغرفة</div>
         
-        <div class="board-box" id="boardArea">
-            [ لوحة الشطرنج جاهزة - في انتظار اتصال اللاعب الثاني أو المشاهدين ]
+        <!-- صندوق إدخال الكود اليدوي -->
+        <div class="setup-box" id="setupBox">
+            <label style="font-size: 12px; color: #ccc;"><i class="fa-solid fa-key"></i> اختر كود الغرفة (مثال: room123):</label>
+            <input type="text" id="customRoomCode" placeholder="اكتب الكود هنا..." autocomplete="off">
+            <button class="create-btn" onclick="createCustomRoom()">إنشاء الغرفة الآن</button>
         </div>
 
-        <div class="chat-box">
+        <div class="board-box" id="boardArea">
+            [ لوحة الشطرنج - المضيف (أبيض) ]
+        </div>
+
+        <div class="chat-box" id="chatContainer">
             <div class="chat-messages" id="chatMessages">
-                <div style="color: #777;">مرحباً بك في الشات الجماعي للغرفة...</div>
+                <div style="color: #777;">شات الغرفة (المضيف)...</div>
             </div>
             <div class="chat-input-area">
                 <input type="text" id="chatInput" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter') sendChatMessage()">
@@ -73,19 +91,21 @@
         const username = localStorage.getItem('chess_username') || 'المضيف';
         document.getElementById('myName').innerText = username;
 
-        // توليد كود عشوائي قصير للغرفة
-        function generateRoomCode() {
-            return Math.random().toString(36).substring(2, 8).toUpperCase();
-        }
-
-        const roomCode = generateRoomCode();
-        document.getElementById('roomCodeDisplay').innerText = `الكود: ${roomCode}`;
-
         let peer = null;
-        let connections = []; // قائمة الاتصالات المتصلة بالمضيف (لاعبين ومراقبين)
+        let connectedPlayers = [];
 
-        function initHostPeer() {
-            // إعداد الـ Peer مع خوادم STUN لضمان الاتصال أونلاين بين الأجهزة المختلفة
+        function createCustomRoom() {
+            const input = document.getElementById('customRoomCode');
+            const roomCode = input.value.trim();
+
+            if (!roomCode) {
+                alert('الرجاء إدخال كود الغرفة أولاً!');
+                return;
+            }
+
+            document.getElementById('status.innerText') = 'جاري حجز الغرفة...';
+
+            // إنشاء اتصال Peer باستخدام الكود اليدوي للمضيف
             peer = new Peer(roomCode, {
                 config: {
                     'iceServers': [
@@ -96,46 +116,43 @@
             });
 
             peer.on('open', (id) => {
-                document.getElementById('status').innerText = 'الغرفة جاهزة! شارك الكود مع أصدقائك.';
+                // الكود متاح وتم حجزه بنجاح
+                document.getElementById('status').innerText = `تم إنشاء الغرفة بنجاح! الكود: ${id}`;
                 document.getElementById('status').style.color = '#22c55e';
+                
+                // إخفاء خانة الإدخال وإظهار اللوحة والشات
+                document.getElementById('setupBox').style.display = 'none';
+                document.getElementById('boardArea').style.display = 'flex';
+                document.getElementById('chatContainer').style.display = 'flex';
+
+                appendSystemMessage(`تم فتح الغرفة بالكود (${id}). بانتظار انضمام اللاعب أو المشاهدين...`);
             });
 
             peer.on('error', (err) => {
-                console.error(err);
-                document.getElementById('status').innerText = 'خطأ في الاتصال بالسيرفر، حاول مرة أخرى.';
-                document.getElementById('status').style.color = '#ef4444';
+                if (err.type === 'unavailable-id') {
+                    alert('عذراً، هذا الكود مستخدم بالفعل من قِبل شخص آخر! اختر كوداً آخر.');
+                    document.getElementById('status').innerText = 'الكود مستخدم، جرب كوداً آخر.';
+                    document.getElementById('status').style.color = '#ef4444';
+                } else {
+                    alert('حدث خطأ: ' + err.type);
+                }
             });
 
-            // استقبال الاتصالات الواردة من اللاعبين أو المراقبين
+            // استقبال اتصالات اللاعبين أو المشاهدين
             peer.on('connection', (conn) => {
-                connections.push(conn);
-                
-                conn.on('open', () => {
-                    appendSystemMessage(`انضم مستخدم جديد للغرفة.`);
-                });
-
                 conn.on('data', (data) => {
-                    handleIncomingData(data, conn);
-                });
-
-                conn.on('close', () => {
-                    connections = connections.filter(c => c !== conn);
-                    appendSystemMessage(`قام أحد الأشخاص بمغادرة الغرفة.`);
+                    if (data.type === 'join_player') {
+                        appendSystemMessage(`انضم اللاعب: ${data.sender} للعب.`);
+                        connectedPlayers.push(conn);
+                    } else if (data.type === 'join_spectator') {
+                        appendSystemMessage(`انضم المشاهد: ${data.sender} للمراقبة.`);
+                        connectedPlayers.push(conn);
+                    } else if (data.type === 'chat') {
+                        appendChatMessage(data.sender, data.text);
+                        broadcastMessage(data, conn);
+                    }
                 });
             });
-        }
-
-        function handleIncomingData(data, conn) {
-            if (data.type === 'chat') {
-                appendChatMessage(data.sender, data.text);
-                // إعادة توجيه رسالة الشات لباقي المتصلين (لو فيه مراقبين تانيين)
-                connections.forEach(c => {
-                    if (c !== conn && c.open) c.send(data);
-                });
-            } else if (data.type === 'move') {
-                // معالجة نقلة الشطرنج المستقبلية
-                console.log('مستقبل نقلة:', data.move);
-            }
         }
 
         function sendChatMessage() {
@@ -143,21 +160,26 @@
             const text = input.value.trim();
             if (!text) return;
 
-            appendChatMessage(username, text);
-            const msgData = { type: 'chat', sender: username, text: text };
+            appendChatMessage(`${username} (المضيف)`, text);
             
-            // إرسال الرسالة لكل المتصلين بالغرفة
-            connections.forEach(c => {
-                if (c.open) c.send(msgData);
-            });
-
+            const messageData = { type: 'chat', sender: `${username} (المضيف)`, text: text };
+            broadcastMessage(messageData);
+            
             input.value = '';
+        }
+
+        function broadcastMessage(data, excludeConn = null) {
+            connectedPlayers.forEach(conn => {
+                if (conn !== excludeConn && conn.open) {
+                    conn.send(data);
+                }
+            });
         }
 
         function appendChatMessage(sender, text) {
             const container = document.getElementById('chatMessages');
             const div = document.createElement('div');
-            div.innerHTML = `<b style="color: #a855f7;">${sender}:</b> ${text}`;
+            div.innerHTML = `<b style="color: #22c55e;">${sender}:</b> ${text}`;
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
         }
@@ -171,11 +193,6 @@
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
         }
-
-        // بدء التشغيل عند تحميل الصفحة
-        window.addEventListener('DOMContentLoaded', () => {
-            initHostPeer();
-        });
     </script>
 </body>
 </html>
