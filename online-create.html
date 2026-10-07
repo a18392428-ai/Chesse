@@ -65,6 +65,7 @@
     <div class="main-container">
         <div id="status">أدخل كوداً مميزاً لإنشاء الغرفة</div>
         
+        <!-- خانة مستقلة خاصة بإنشاء الغرفة وكتابة الكود -->
         <div class="setup-box" id="setupBox">
             <label style="font-size: 12px; color: #ccc;"><i class="fa-solid fa-key"></i> اختر كود الغرفة (مثال: room123):</label>
             <input type="text" id="customRoomCode" placeholder="اكتب الكود هنا..." autocomplete="off">
@@ -102,7 +103,6 @@
                 return;
             }
 
-            // تم تصحيح الخطأ البرمجي هنا
             document.getElementById('status').innerText = 'جاري حجز الغرفة...';
 
             try {
