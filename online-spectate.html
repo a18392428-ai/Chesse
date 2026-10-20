@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>شطرنج أونلاين - مراقبة الجيم (مشاهد)</title>
+    <meta name="theme-color" content="#9333ea">
+    <title>شطرنج أونلاين - انضمام للعب (لاعب)</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- مكتبة قواعد الشطرنج -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
     <style>
@@ -19,12 +20,10 @@
             width: 100%; padding: 10px; background: #1f1f1f; display: flex;
             justify-content: space-between; align-items: center; border-bottom: 1px solid #333; z-index: 10;
         }
-        .role-badge { background: #3b82f6; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; color: white; }
+        .role-badge { background: #a855f7; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; color: white; }
         .back-btn { background: #333; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; }
-        
         .main-container { flex: 1; width: 100%; max-width: 450px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; position: relative; }
         #status { font-size: 12px; color: #eab308; margin-bottom: 8px; text-align: center; }
-        
         .setup-box {
             background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 15px;
             width: 100%; max-width: 320px; text-align: center;
@@ -36,11 +35,22 @@
         }
         .setup-box input::placeholder { direction: rtl; }
         .action-btn {
-            background: #3b82f6; color: white; border: none; padding: 10px; width: 100%;
+            background: #a855f7; color: white; border: none; padding: 10px; width: 100%;
             border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 13px;
         }
-
-        /* حاوية لوحة الشطرنج للمشاهد */
+        .action-btn:active { opacity: 0.8; }
+        .game-panel {
+            width: min(92vw, 360px); background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
+            padding: 10px; margin-top: 10px; display: none;
+        }
+        .game-panel-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 6px 0; font-size: 12px; }
+        #gameStatus { min-height: 36px; color: #facc15; font-weight: bold; text-align: center; }
+        .controls { display: flex; gap: 8px; margin-top: 8px; }
+        .controls button {
+            flex: 1; padding: 8px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 12px;
+        }
+        .new-game-btn { background: #3b82f6; color: white; }
+        .resign-btn { background: #ef4444; color: white; }
         #boardContainer {
             width: 340px; height: 340px; display: grid; grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr); border: 3px solid #383838; border-radius: 8px;
@@ -48,15 +58,19 @@
         }
         .square {
             display: flex; align-items: center; justify-content: center;
-            font-size: 30px; position: relative;
+            font-size: 30px; cursor: pointer; position: relative;
         }
         .light { background: #f0d9b5; color: #000; }
         .dark { background: #b58863; color: #000; }
-
-        /* زر الشات العائم */
+        .square.selected { background: #7b61ff !important; }
+        .move-dot {
+            width: 14px; height: 14px; background: rgba(0, 255, 0, 0.7);
+            border-radius: 50%; position: absolute; pointer-events: none;
+            box-shadow: 0 0 6px rgba(0,255,0,0.9);
+        }
         #floatingChatBtn {
             position: fixed; bottom: 20px; left: 20px; width: 50px; height: 50px;
-            background: #3b82f6; color: white; border-radius: 50%; border: none;
+            background: #a855f7; color: white; border-radius: 50%; border: none;
             font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 100; display: none;
         }
@@ -64,8 +78,6 @@
             position: absolute; top: -2px; right: -2px; background: #ef4444; color: white;
             font-size: 9px; padding: 2px 5px; border-radius: 50%; display: none;
         }
-
-        /* نافذة الشات العائمة */
         #chatModal {
             position: fixed; bottom: 80px; left: 20px; width: 280px; height: 300px;
             background: #1a1a1a; border: 1px solid #444; border-radius: 12px;
@@ -79,44 +91,49 @@
         .chat-messages { flex: 1; overflow-y: auto; padding: 8px; font-size: 11px; display: flex; flex-direction: column; gap: 6px; }
         .chat-input-area { display: flex; border-top: 1px solid #333; padding: 4px; background: #121212; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
         .chat-input-area input { flex: 1; background: transparent; border: none; color: white; padding: 6px; font-size: 11px; outline: none; text-align: right; }
-        .chat-input-area button { background: #3b82f6; color: white; border: none; padding: 0 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px; }
+        .chat-input-area button { background: #a855f7; color: white; border: none; padding: 0 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px; }
     </style>
 </head>
 <body>
-
     <header>
         <button class="back-btn" onclick="window.location.href='menu.html'"><i class="fa-solid fa-arrow-right"></i> القائمة</button>
-        <div style="font-size: 12px;" id="myName">مشاهد</div>
-        <div class="role-badge"><i class="fa-solid fa-eye"></i> مراقب (مشاهد)</div>
+        <div style="font-size: 12px;" id="myName">اللاعب</div>
+        <div class="role-badge"><i class="fa-solid fa-chess-knight"></i> انضمام (أسود)</div>
     </header>
 
     <div class="main-container">
-        <div id="status">أدخل كود الغرفة لمتابعة الجيم</div>
-        
+        <div id="status">أدخل كود غرفة الصديق للانضمام</div>
+
         <div class="setup-box" id="setupBox">
-            <label style="font-size: 11px; color: #ccc;"><i class="fa-solid fa-key"></i> كود الغرفة للمراقبة:</label>
-            <input type="text" id="spectateCodeInput" placeholder="اكتب الكود هنا..." autocomplete="off">
-            <button class="action-btn" onclick="connectAsSpectator()">بدء المراقبة</button>
+            <label style="font-size: 11px; color: #ccc;"><i class="fa-solid fa-key"></i> كود الغرفة:</label>
+            <input type="text" id="roomCodeInput" placeholder="اكتب الكود هنا..." autocomplete="off">
+            <button class="action-btn" onclick="connectToRoom()">اتصال بالمعركة</button>
         </div>
 
-        <!-- لوحة الشطرنج للمشاهد -->
+        <div class="game-panel" id="gamePanel">
+            <div id="gameStatus">بانتظار اللعبة</div>
+            <div class="game-panel-row"><span>اللون</span><strong>أسود</strong></div>
+            <div class="controls">
+                <button class="new-game-btn" onclick="requestNewGame()">بدء لعبة جديدة</button>
+                <button class="resign-btn" onclick="resignGame()">استسلام</button>
+            </div>
+        </div>
+
         <div id="boardContainer"></div>
     </div>
 
-    <!-- زر الشات العائم -->
     <button id="floatingChatBtn" onclick="toggleChat()">
         <i class="fa-solid fa-comments"></i>
         <span class="badge" id="chatBadge">0</span>
     </button>
 
-    <!-- صندوق الشات العائم المنبثق -->
     <div id="chatModal">
         <div class="chat-header">
-            <span><b>شات الغرفة (مشاهدة)</b></span>
+            <span><b>شات الغرفة</b></span>
             <button class="close-chat" onclick="toggleChat()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="chat-messages" id="chatMessages">
-            <div style="color: #777; font-style: italic;">أهلاً بك في شات المشاهدين...</div>
+            <div style="color: #777; font-style: italic;">أهلاً بك في الشات العائم...</div>
         </div>
         <div class="chat-input-area">
             <input type="text" id="chatInput" placeholder="اكتب رسالة..." onkeydown="if(event.key==='Enter') sendChatMessage()">
@@ -125,50 +142,286 @@
     </div>
 
     <script>
-        const username = localStorage.getItem('chess_username') || 'مشاهد';
+        const username = localStorage.getItem('chess_username') || 'اللاعب';
         document.getElementById('myName').innerText = username;
 
         let peer = null;
         let hostConnection = null;
         let chess = new Chess();
+        let selectedSquare = null;
         let unreadMessages = 0;
+        let myColor = 'b';
+        let capturedWhite = [];
+        let capturedBlack = [];
 
         const pieceSymbols = {
             'p': '♟', 'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚',
             'P': '♙', 'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔'
         };
 
-        function connectAsSpectator() {
-            const roomCode = document.getElementById('spectateCodeInput').value.trim();
-            if (!roomCode) { alert('الرجاء إدخال كود الغرفة أولاً!'); return; }
+        function showGamePanel(show = true) {
+            document.getElementById('gamePanel').style.display = show ? 'block' : 'none';
+        }
 
-            document.getElementById('status').innerText = `جاري الاتصال بالغرفة (${roomCode})...`;
+        function setGameStatus(text, color = '#facc15') {
+            const el = document.getElementById('gameStatus');
+            el.innerText = text;
+            el.style.color = color;
+        }
+
+        function evaluateGameState() {
+            if (chess.isCheckmate()) {
+                const winner = chess.turn() === 'w' ? 'الأسود' : 'الأبيض';
+                setGameStatus(`انتهت اللعبة: كش مات! الفائز: ${winner}`, '#fca5a5');
+                return `انتهت اللعبة: كش مات! الفائز: ${winner}`;
+            }
+            if (chess.isStalemate()) {
+                setGameStatus('تمت المباراة بالتعادل: stalemate', '#c4b5fd');
+                return 'تمت المباراة بالتعادل: stalemate';
+            }
+            if (chess.isThreefoldRepetition()) {
+                setGameStatus('تمت المباراة بالتعادل: تكرار ثلاثي', '#c4b5fd');
+                return 'تمت المباراة بالتعادل: تكرار ثلاثي';
+            }
+            if (chess.isInsufficientMaterial()) {
+                setGameStatus('تمت المباراة بالتعادل: قطع ناقصة', '#c4b5fd');
+                return 'تمت المباراة بالتعادل: قطع ناقصة';
+            }
+            if (chess.isCheck()) {
+                setGameStatus(`كاش! دور ${chess.turn() === 'w' ? 'الأبيض' : 'الأسود'}`, '#fbbf24');
+                return `كاش! دور ${chess.turn() === 'w' ? 'الأبيض' : 'الأسود'}`;
+            }
+            const turnLabel = chess.turn() === 'w' ? 'الأبيض' : 'الأسود';
+            setGameStatus(`دور ${turnLabel}`, '#facc15');
+            return `دور ${turnLabel}`;
+        }
+
+        function syncChessState(data) {
+            if (!data || !data.fen) return;
+            try {
+                chess.load(data.fen);
+                selectedSquare = null;
+                renderBoard();
+                if (data.status) {
+                    setGameStatus(data.status, '#facc15');
+                }
+            } catch (e) {
+                console.error('Failed to load fen', e);
+            }
+        }
+
+        function sendBoardState(extraStatus = null) {
+            const state = {
+                type: 'state',
+                fen: chess.fen(),
+                status: extraStatus || evaluateGameState(),
+                capturedWhite,
+                capturedBlack
+            };
+            if (hostConnection && hostConnection.open) hostConnection.send(state);
+        }
+
+        function requestNewGame() {
+            chess = new Chess();
+            selectedSquare = null;
+            capturedWhite = [];
+            capturedBlack = [];
+            renderBoard();
+            setGameStatus('بدأت لعبة جديدة! دور الأبيض', '#facc15');
+            sendBoardState('بدأت لعبة جديدة! دور الأبيض');
+        }
+
+        function resignGame() {
+            const winner = myColor === 'b' ? 'الأبيض' : 'الأسود';
+            const message = `انتهت اللعبة: اللاعب ${username} استسلم. الفائز: ${winner}`;
+            setGameStatus(message, '#fca5a5');
+            if (hostConnection && hostConnection.open) {
+                hostConnection.send({ type: 'state', fen: chess.fen(), status: message });
+            }
+        }
+
+        function connectToRoom() {
+            const roomCode = document.getElementById('roomCodeInput').value.trim();
+            if (!roomCode) {
+                alert('الرجاء إدخال كود الغرفة أولاً!');
+                return;
+            }
+
+            document.getElementById('status').innerText = `جاري تهيئة الاتصال...`;
+            document.getElementById('status').style.color = '#eab308';
+
+            if (peer) {
+                try { peer.destroy(); } catch (e) {}
+            }
 
             peer = new Peer({
-                config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] }
+                config: {
+                    'iceServers': [
+                        { url: 'stun:stun.l.google.com:19302' },
+                        { url: 'stun:stun1.l.google.com:19302' }
+                    ]
+                }
             });
 
-            peer.on('open', () => {
-                hostConnection = peer.connect(roomCode);
+            peer.on('open', (id) => {
+                document.getElementById('status').innerText = `جاري الاتصال بالغرفة (${roomCode})...`;
+                hostConnection = peer.connect(roomCode, { reliable: true });
 
                 hostConnection.on('open', () => {
-                    document.getElementById('status').innerText = `تم الاتصال بنجاح كـ مشاهد!`;
+                    document.getElementById('status').innerText = `تم الانضمام للغرفة بنجاح!`;
                     document.getElementById('status').style.color = '#22c55e';
-                    
                     document.getElementById('setupBox').style.display = 'none';
                     document.getElementById('boardContainer').style.display = 'grid';
                     document.getElementById('floatingChatBtn').style.display = 'flex';
-
+                    showGamePanel(true);
                     renderBoard();
-                    appendSystemMessage('تم الانضمام للمراقبة بنجاح.');
-                    hostConnection.send({ type: 'join_spectator', sender: username });
+                    appendSystemMessage('تم الاتصال بالمضيف بنجاح.');
+                    setGameStatus('جاهز للعب! دور الأسود', '#facc15');
+                    try { hostConnection.send({ type: 'join_player', sender: username }); } catch (e) {}
                 });
 
                 hostConnection.on('data', (data) => {
-                    if (data.type === 'move') {
+                    if (data.type === 'state') {
+                        syncChessState(data);
+                        if (data.capturedWhite) capturedWhite = data.capturedWhite;
+                        if (data.capturedBlack) capturedBlack = data.capturedBlack;
+                    } else if (data.type === 'move') {
                         chess.move(data.move);
                         renderBoard();
                     } else if (data.type === 'chat') {
                         appendChatMessage(data.sender, data.text);
                         if (document.getElementById('chatModal').style.display !== 'flex') {
-                            unreadMessages
+                            unreadMessages++;
+                            const badge = document.getElementById('chatBadge');
+                            badge.innerText = unreadMessages;
+                            badge.style.display = 'inline-block';
+                        }
+                    }
+                });
+
+                hostConnection.on('error', (err) => {
+                    console.error('Connection error:', err);
+                    document.getElementById('status').innerText = 'حدث خطأ في الاتصال بالمضيف!';
+                    document.getElementById('status').style.color = '#ef4444';
+                });
+
+                hostConnection.on('close', () => {
+                    document.getElementById('status').innerText = 'تم إغلاق الغرفة من قِبل المضيف.';
+                    document.getElementById('status').style.color = '#ef4444';
+                });
+            });
+
+            peer.on('error', (err) => {
+                console.error('Peer error:', err);
+                document.getElementById('status').innerText = 'تعذر الاتصال بالخادم أو الغرفة غير موجودة!';
+                document.getElementById('status').style.color = '#ef4444';
+                alert('تأكد من صحة كود الغرفة أو أن المضيف قام بإنشائها بالفعل.');
+            });
+        }
+
+        function renderBoard() {
+            const container = document.getElementById('boardContainer');
+            container.innerHTML = '';
+            const board = chess.board();
+
+            for (let r = 7; r >= 0; r--) {
+                for (let c = 7; c >= 0; c--) {
+                    const squareDiv = document.createElement('div');
+                    const isLight = (r + c) % 2 === 0;
+                    squareDiv.className = `square ${isLight ? 'light' : 'dark'}`;
+
+                    const file = String.fromCharCode(97 + c);
+                    const rank = 8 - r;
+                    const squareId = file + rank;
+
+                    if (squareId === selectedSquare) {
+                        squareDiv.classList.add('selected');
+                    }
+
+                    const piece = board[r][c];
+                    if (piece) {
+                        squareDiv.innerText = pieceSymbols[piece.color === 'w' ? piece.type.toUpperCase() : piece.type.toLowerCase()];
+                    }
+
+                    if (selectedSquare) {
+                        const legalMoves = chess.moves({ square: selectedSquare, verbose: true });
+                        if (legalMoves.some(m => m.to === squareId)) {
+                            const dot = document.createElement('div');
+                            dot.className = 'move-dot';
+                            squareDiv.appendChild(dot);
+                        }
+                    }
+
+                    squareDiv.onclick = () => handleSquareClick(squareId);
+                    container.appendChild(squareDiv);
+                }
+            }
+        }
+
+        function handleSquareClick(squareId) {
+            if (chess.game_over()) return;
+            if (!selectedSquare) {
+                const piece = chess.get(squareId);
+                if (piece && piece.color === myColor) {
+                    selectedSquare = squareId;
+                    renderBoard();
+                }
+            } else {
+                const move = chess.move({ from: selectedSquare, to: squareId, promotion: 'q' });
+                if (move) {
+                    if (move.captured) {
+                        if (move.color === 'w') capturedBlack.push(move.captured.toUpperCase());
+                        else capturedWhite.push(move.captured.toUpperCase());
+                    }
+                    renderBoard();
+                    const status = evaluateGameState();
+                    if (hostConnection && hostConnection.open) {
+                        hostConnection.send({ type: 'state', fen: chess.fen(), status, capturedWhite, capturedBlack });
+                    }
+                }
+                selectedSquare = null;
+                renderBoard();
+            }
+        }
+
+        function toggleChat() {
+            const modal = document.getElementById('chatModal');
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            } else {
+                modal.style.display = 'flex';
+                unreadMessages = 0;
+                document.getElementById('chatBadge').style.display = 'none';
+            }
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text || !hostConnection || !hostConnection.open) return;
+
+            appendChatMessage(`${username} (لاعب)`, text);
+            hostConnection.send({ type: 'chat', sender: `${username} (لاعب)`, text: text });
+            input.value = '';
+        }
+
+        function appendChatMessage(sender, text) {
+            const container = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.innerHTML = `<b style="color: #a855f7;">${sender}:</b> ${text}`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendSystemMessage(text) {
+            const container = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.style.color = '#eab308';
+            div.style.fontStyle = 'italic';
+            div.innerText = text;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+    </script>
+</body>
+</html>

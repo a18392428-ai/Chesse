@@ -1,96 +1,73 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>شطرنج أونلاين - تسجيل الاسم</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * { box-sizing: border-box; user-select: none; }
-        html, body {
-            width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0;
-            background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
-            color: white; font-family: Tahoma, sans-serif;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px;
-        }
+# شطرنج أونلاين
 
-        .card {
-            background: linear-gradient(135deg, #1f1f1f, #252525);
-            border: 1px solid #383838; padding: 25px; border-radius: 16px;
-            width: 100%; max-width: 330px; text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-            animation: zoomIn 0.4s ease-out;
-        }
+لعبة شطرنج ويب سهلة التشغيل ومناسبة للهواتف المحمولة، مع دعم:
 
-        h1 { margin-top: 0; font-size: 22px; color: #a855f7; text-shadow: 0 0 12px rgba(168, 85, 247, 0.4); margin-bottom: 8px; }
-        p { font-size: 12px; color: #9ca3af; margin-bottom: 20px; }
+- تسجيل اسم اللاعب
+- إنشاء غرف جديدة
+- الانضمام لغرفة عبر كود
+- مراقبة الألعاب كـ مشاهد
+- دردشة داخل الغرفة
+- دعم تثبيت التطبيق على Android كـ PWA
+- لعب أونلاين عبر PeerJS (مباشر بين الأجهزة من خلال نفس الكود)
 
-        .input-group { margin-bottom: 16px; text-align: right; }
-        .input-group label { display: block; font-size: 12px; color: #d1d5db; margin-bottom: 6px; }
-        
-        input[type="text"] {
-            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #444;
-            background: #121212; color: white; font-size: 14px; text-align: center;
-            outline: none; transition: 0.3s; direction: ltr;
-        }
-        input[type="text"]::placeholder { direction: rtl; }
-        input[type="text"]:focus { border-color: #a855f7; box-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
+## التشغيل
 
-        .btn {
-            width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 14px;
-            font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            flex-direction: row-reverse; gap: 8px; background: linear-gradient(135deg, #a855f7, #9333ea); color: white;
-            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); transition: 0.3s; text-decoration: none;
-        }
-        .btn:hover { transform: translateY(-2px); }
+افتح المشروع في متصفحك، ثم اذهب إلى:
 
-        @keyframes zoomIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-    </style>
-</head>
-<body>
+- `index.html` لتسجيل الاسم
+- `menu.html` للوصول إلى القوائم
 
-    <div class="card">
-        <h1><i class="fa-solid fa-chess"></i> شطرنج أونلاين</h1>
-        <p>أدخل اسمك لنبدأ الرحلة</p>
+## ملاحظات مهمة
 
-        <div class="input-group">
-            <label><i class="fa-solid fa-user"></i> اسم اللاعب:</label>
-            <input type="text" id="usernameInput" placeholder="اكتب اسمك هنا..." maxlength="15" autocomplete="off" onkeydown="if(event.key==='Enter') saveAndProceed()">
-        </div>
+- هذا المشروع يعتمد على PeerJS عبر الإنترنت، لذلك يحتاج كلا الطرفين إلى الوصول إلى الإنترنت.
+- الأفضل استخدامه عبر المتصفح على الهاتف أو الحاسوب، ثم تثبيت التطبيق من قائمة المتصفح.
+- لمشاهدة اللعبة أو اللعب يجب استخدام نفس كود الغرفة.
 
-        <button class="btn" onclick="saveAndProceed()"><i class="fa-solid fa-arrow-left"></i> التالي</button>
-    </div>
+## الملفات الأساسية
 
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedName = localStorage.getItem('chess_username');
-            if (savedName) {
-                document.getElementById('usernameInput').value = savedName;
-            }
-        });
+- `index.html` — شاشة تسجيل الاسم
+- `menu.html` — القائمة الرئيسية
+- `online-create.html` — إنشاء غرفة المضيف
+- `online-join.html` — انضمام لاعب
+- `online-spectate.html` — مشاهدة اللعبة
+- `manifest.json` — إعدادات التطبيق المحمول
+- `sw.js` — خدمة العمل offline
 
-        function saveAndProceed() {
-            const usernameInput = document.getElementById('usernameInput');
-            if (!usernameInput) return;
-            
-            const username = usernameInput.value.trim();
-            if (!username) {
-                alert('الرجاء إدخال اسمك أولاً!');
-                return;
-            }
-            
-            try {
-                localStorage.setItem('chess_username', username);
-                window.location.href = 'menu.html';
-            } catch (e) {
-                window.name = username;
-                window.location.href = 'menu.html';
-            }
-        }
-    </script>
-</body>
-</html>
+## التثبيت على Android
+
+في متصفح Chrome أو Edge على الهاتف:
+
+1. افتح الرابط الخاص بالموقع.
+2. اضغط زر القائمة في المتصفح.
+3. اختر "Add to Home screen" أو "تثبيت التطبيق".
+4. استخدم التطبيق من الشاشة الرئيسية.
+
+## ملاحظات تطويرية
+
+- اللعبة الحالية تستخدم مكتبة `chess.js` للتحقق من الحركات والقوانين.
+- التواصل الفعلي يتم عبر `PeerJS` مع STUN من Google.
+- إذا كنت تريد نسخة احترافية أكثر، يمكن لاحقاً إضافة:
+  - قاعدة بيانات حقيقية
+  - نظام تسجيل دخول
+  - بطولات/مستويات
+  - مؤثرات صوتية
+  - حسابات ودرجات
+  - روبوت للاعب الفردي
+
+## الإطلاق في الإنتاج
+
+لإطلاق المشروع على الإنترنت على موقع حقيقي، تحتاج إلى:
+
+- استضافة ثابتة مثل GitHub Pages / Netlify / Vercel / Firebase Hosting
+- اعتماد HTTPS لأن PWA و PeerJS يعملان بشكل أفضل مع HTTPS
+
+## للمطورين
+
+إذا رغبت في توسيع اللعبة، أضف:
+
+- نظام توقيت لكل لاعب
+- تسجيل تاريخ الحركات
+- إعادة اللعب
+- عناصر واجهة أكثر احترافية
+- دعم اللغة الإنجليزية والعربية
+

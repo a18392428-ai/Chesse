@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>شطرنج أونلاين - القائمة الرئيسية</title>
+    <meta name="theme-color" content="#6d28d9">
+    <meta name="description" content="لعبة شطرنج أونلاين قابلة للتثبيت على الهواتف واللعب عبر الإنترنت">
+    <title>شطرنج أونلاين - تسجيل الاسم</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; user-select: none; }
@@ -23,20 +26,27 @@
             animation: zoomIn 0.4s ease-out;
         }
 
-        h1 { margin-top: 0; font-size: 20px; color: #a855f7; text-shadow: 0 0 12px rgba(168, 85, 247, 0.4); }
-        .welcome-user { font-size: 13px; color: #22c55e; margin-bottom: 20px; font-weight: bold; }
+        h1 { margin-top: 0; font-size: 22px; color: #a855f7; text-shadow: 0 0 12px rgba(168, 85, 247, 0.4); margin-bottom: 8px; }
+        p { font-size: 12px; color: #9ca3af; margin-bottom: 20px; }
+
+        .input-group { margin-bottom: 16px; text-align: right; }
+        .input-group label { display: block; font-size: 12px; color: #d1d5db; margin-bottom: 6px; }
+
+        input[type="text"] {
+            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #444;
+            background: #121212; color: white; font-size: 14px; text-align: center;
+            outline: none; transition: 0.3s; direction: ltr;
+        }
+        input[type="text"]::placeholder { direction: rtl; }
+        input[type="text"]:focus { border-color: #a855f7; box-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
 
         .btn {
-            width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 13px;
+            width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 14px;
             font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            flex-direction: row-reverse; gap: 8px; margin-top: 10px; text-decoration: none; color: white; transition: 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            flex-direction: row-reverse; gap: 8px; background: linear-gradient(135deg, #a855f7, #9333ea); color: white;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); transition: 0.3s; text-decoration: none;
         }
         .btn:hover { transform: translateY(-2px); }
-        .btn-create { background: linear-gradient(135deg, #22c55e, #16a34a); }
-        .btn-join { background: linear-gradient(135deg, #a855f7, #9333ea); }
-        .btn-spectate { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-        .btn-back { background: #333; font-size: 11px; padding: 9px; margin-top: 15px; }
 
         @keyframes zoomIn {
             from { opacity: 0; transform: scale(0.9); }
@@ -47,26 +57,46 @@
 <body>
 
     <div class="card">
-        <h1><i class="fa-solid fa-chess"></i> القائمة الرئيسية</h1>
-        <div id="welcomeText" class="welcome-user">مهلاً بك</div>
+        <h1><i class="fa-solid fa-chess"></i> شطرنج أونلاين</h1>
+        <p>أدخل اسمك لنبدأ الرحلة</p>
 
-        <button class="btn btn-create" onclick="window.location.href='online-create.html'"><i class="fa-solid fa-plus-circle"></i> إنشاء غرفة جديدة (المضيف)</button>
-        <button class="btn btn-join" onclick="window.location.href='online-join.html'"><i class="fa-solid fa-right-to-bracket"></i> انضمام للعب (لاعب)</button>
-        <button class="btn btn-spectate" onclick="window.location.href='online-spectate.html'"><i class="fa-solid fa-eye"></i> مراقبة الجيم (مشاهد)</button>
-        
-        <button class="btn btn-back" onclick="window.location.href='index.html'"><i class="fa-solid fa-arrow-right"></i> تغير الاسم</button>
+        <div class="input-group">
+            <label><i class="fa-solid fa-user"></i> اسم اللاعب:</label>
+            <input type="text" id="usernameInput" placeholder="اكتب اسمك هنا..." maxlength="15" autocomplete="off" onkeydown="if(event.key==='Enter') saveAndProceed()">
+        </div>
+
+        <button class="btn" onclick="saveAndProceed()"><i class="fa-solid fa-arrow-left"></i> التالي</button>
     </div>
 
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            const username = localStorage.getItem('chess_username');
+            const savedName = localStorage.getItem('chess_username');
+            if (savedName) {
+                document.getElementById('usernameInput').value = savedName;
+            }
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js').catch(console.error);
+            }
+        });
+
+        function saveAndProceed() {
+            const usernameInput = document.getElementById('usernameInput');
+            if (!usernameInput) return;
+
+            const username = usernameInput.value.trim();
             if (!username) {
-                window.location.href = 'index.html';
+                alert('الرجاء إدخال اسمك أولاً!');
                 return;
             }
-            // تعرض اسم المستخدم الذي قام بالتسجيل فقط بدون أي أسماء ثابته
-            document.getElementById('welcomeText').innerText = `أهلاً بك، ${username} ✨`;
-        });
+
+            try {
+                localStorage.setItem('chess_username', username);
+                window.location.href = 'menu.html';
+            } catch (e) {
+                window.name = username;
+                window.location.href = 'menu.html';
+            }
+        }
     </script>
 </body>
 </html>
